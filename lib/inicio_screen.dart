@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:fraccionamiento/colors.dart';
+import 'package:fraccionamiento/residentes_screen.dart';
 
 class InicioScreen extends StatelessWidget {
   const InicioScreen({super.key});
@@ -22,7 +23,9 @@ class InicioScreen extends StatelessWidget {
                 prefixIcon: const Icon(Icons.search),
                 filled: true,
                 fillColor: Colors.white,
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
             ),
             const SizedBox(height: 20),
@@ -35,7 +38,12 @@ class InicioScreen extends StatelessWidget {
                   _boton(context, Icons.directions_car, 'Registrar Visitas'),
                   _boton(context, Icons.event, 'Reservar Áreas'),
                   _boton(context, Icons.campaign, 'Ver Avisos'),
-                  _boton(context, Icons.payments, 'Consultar Pagos', ruta: '/pagos'),
+                  _boton(
+                    context,
+                    Icons.payments,
+                    'Consultar Pagos',
+                    ruta: '/pagos',
+                  ),
                 ],
               ),
             ),
@@ -46,10 +54,24 @@ class InicioScreen extends StatelessWidget {
         backgroundColor: AppColors.celesteNegro,
         selectedItemColor: Colors.white,
         unselectedItemColor: Colors.white70,
+        onTap: (index) {
+          if (index == 1) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const ResidentesScreen()),
+            );
+          }
+        },
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Inicio'),
-          BottomNavigationBarItem(icon: Icon(Icons.people), label: 'Residentes'),
-          BottomNavigationBarItem(icon: Icon(Icons.notifications), label: 'Alertas'),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.people),
+            label: 'Residentes',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.notifications),
+            label: 'Alertas',
+          ),
         ],
       ),
       floatingActionButton: FloatingActionButton(
@@ -60,7 +82,12 @@ class InicioScreen extends StatelessWidget {
     );
   }
 
-  Widget _boton(BuildContext context, IconData icono, String texto, {String? ruta}) {
+  Widget _boton(
+    BuildContext context,
+    IconData icono,
+    String texto, {
+    String? ruta,
+  }) {
     return GestureDetector(
       onTap: ruta != null ? () => Navigator.pushNamed(context, ruta) : null,
       child: Container(
