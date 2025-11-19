@@ -13,7 +13,7 @@ class EditarResidenteScreen extends StatefulWidget {
 }
 
 class _EditarResidenteScreenState extends State<EditarResidenteScreen> {
-  final Dio dio = Dio(BaseOptions(baseUrl: 'http://127.0.0.1:3002'));
+  final Dio dio = Dio(BaseOptions(baseUrl: 'http://192.168.100.161:3002'));
   final _formKey = GlobalKey<FormState>();
 
   late TextEditingController nombreCtrl;
@@ -27,44 +27,37 @@ class _EditarResidenteScreenState extends State<EditarResidenteScreen> {
   void initState() {
     super.initState();
     nombreCtrl = TextEditingController(text: widget.residente.nombre);
-    apellido1Ctrl = TextEditingController(text: widget.residente.primerApellido);
-    apellido2Ctrl = TextEditingController(text: widget.residente.segundoApellido ?? '');
-    correoCtrl = TextEditingController(text: widget.residente.correo);
-    telefonoCtrl = TextEditingController(text: widget.residente.telefono);
-    numeroCasaCtrl =
-        TextEditingController(text: widget.residente.numeroResidencia.toString());
+    apellido1Ctrl =
+        TextEditingController(text: widget.residente.primerApellido);
+    apellido2Ctrl =
+        TextEditingController(text: widget.residente.segundoApellido ?? '');
+    correoCtrl = TextEditingController(text: widget.residente.correo ?? '');
+    telefonoCtrl = TextEditingController(text: widget.residente.telefono ?? '');
+    numeroCasaCtrl = TextEditingController(
+        text: widget.residente.numeroResidencia?.toString() ?? '');
   }
 
   Future<void> actualizarResidente() async {
     if (!_formKey.currentState!.validate()) return;
 
     try {
-      print('📡 Enviando actualización al ID: ${widget.residente.idResidente}');
-      print({
-  "id": widget.residente.idResidente,
-  "nombre": nombreCtrl.text,
-  "primer_apellido": apellido1Ctrl.text,
-  "segundo_apellido": apellido2Ctrl.text,
-  "correo": correoCtrl.text,
-  "telefono": telefonoCtrl.text,
-  "numero_residencia": int.parse(numeroCasaCtrl.text),
-});
-      await dio.put('/residente/${widget.residente.idResidente}', data: {
+      await dio.put('/persona/${widget.residente.idResidente}', data: {
         "nombre": nombreCtrl.text,
         "primer_apellido": apellido1Ctrl.text,
-        "segundo_apellido": apellido2Ctrl.text,
-        "correo": correoCtrl.text,
-        "telefono": telefonoCtrl.text,
-        "numero_residencia": int.parse(numeroCasaCtrl.text),
+        "segundo_apellido":
+            apellido2Ctrl.text.isEmpty ? null : apellido2Ctrl.text,
+        "correo": correoCtrl.text.isEmpty ? null : correoCtrl.text,
+        "telefono": telefonoCtrl.text.isEmpty ? null : telefonoCtrl.text,
+        "no_residencia": int.tryParse(numeroCasaCtrl.text),
       });
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Residente actualizado correctamente')),
+        const SnackBar(content: Text('Persona actualizada correctamente')),
       );
       Navigator.pop(context, true);
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error al actualizar residente: $e')),
+        SnackBar(content: Text('Error al actualizar persona: $e')),
       );
     }
   }
@@ -100,9 +93,7 @@ class _EditarResidenteScreenState extends State<EditarResidenteScreen> {
                   backgroundColor: AppColors.celesteVivo,
                   padding: const EdgeInsets.symmetric(vertical: 14),
                 ),
-                onPressed: () async{
-                  await actualizarResidente();
-                }
+                onPressed: actualizarResidente,
               ),
             ],
           ),

@@ -13,7 +13,7 @@ class ResidentesScreen extends StatefulWidget {
 }
 
 class _ResidentesScreenState extends State<ResidentesScreen> {
-  final Dio dio = Dio(BaseOptions(baseUrl: 'http://127.0.0.1:3002'));
+  final Dio dio = Dio(BaseOptions(baseUrl: 'http://192.168.100.161:3002'));
   List<Residente> residentes = [];
   bool cargando = true;
   String filtro = '';
@@ -26,8 +26,9 @@ class _ResidentesScreenState extends State<ResidentesScreen> {
 
   Future<void> obtenerResidentes() async {
     try {
-      final response = await dio.get('/residentes');
-      final List data = response.data;
+      final response = await dio.get('/personas');
+      final List data = response.data as List;
+
       setState(() {
         residentes = data.map((e) => Residente.fromJson(e)).toList();
         cargando = false;
@@ -35,32 +36,34 @@ class _ResidentesScreenState extends State<ResidentesScreen> {
     } catch (e) {
       setState(() => cargando = false);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error al obtener residentes: $e')),
+        SnackBar(content: Text('Error al obtener personas: $e')),
       );
     }
   }
 
-  Future<void> eliminarResidente(int id) async {
+  Future<void> eliminarResidente(int idPersona) async {
     try {
-      await dio.delete('/residente/$id');
+      await dio.delete('/persona/$idPersona');
       await obtenerResidentes();
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Residente eliminado correctamente')),
+        const SnackBar(content: Text('Persona eliminada correctamente')),
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error al eliminar residente: $e')),
+        SnackBar(content: Text('Error al eliminar persona: $e')),
       );
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    // Si quieres solo residentes (que tengan casa), filtramos por numeroResidencia != null
     final residentesFiltrados = residentes
         .where(
           (r) =>
-              r.nombre.toLowerCase().contains(filtro.toLowerCase()) ||
-              r.numeroResidencia.toString().contains(filtro),
+              (r.nombre.toLowerCase().contains(filtro.toLowerCase()) ||
+                  (r.numeroResidencia?.toString().contains(filtro) ?? false)) &&
+              r.numeroResidencia != null,
         )
         .toList();
 
@@ -124,7 +127,7 @@ class _ResidentesScreenState extends State<ResidentesScreen> {
                               ),
                             ),
                             subtitle: Text(
-                              'Casa ${r.numeroResidencia.toString()}',
+                              'Casa ${r.numeroResidencia ?? '-'}',
                             ),
                             trailing: Row(
                               mainAxisSize: MainAxisSize.min,
@@ -148,15 +151,13 @@ class _ResidentesScreenState extends State<ResidentesScreen> {
                                     }
                                   },
                                 ),
-
                                 IconButton(
                                   icon: const Icon(
                                     Icons.delete,
                                     color: Colors.redAccent,
                                   ),
                                   onPressed: () {
-                                    eliminarResidente(r.numeroResidencia);
-                                    
+                                    eliminarResidente(r.idResidente);
                                   },
                                 ),
                               ],
@@ -180,27 +181,10 @@ class _ResidentesScreenState extends State<ResidentesScreen> {
           );
 
           if (agregado == true) {
-            obtenerResidentes(); 
+            obtenerResidentes();
           }
         },
         child: const Icon(Icons.add),
-      ),
-
-      bottomNavigationBar: BottomNavigationBar(
-        backgroundColor: AppColors.celesteNegro,
-        selectedItemColor: Colors.white,
-        unselectedItemColor: Colors.white70,
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Inicio'),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.people),
-            label: 'Residentes',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.notifications),
-            label: 'Alertas',
-          ),
-        ],
       ),
     );
   }

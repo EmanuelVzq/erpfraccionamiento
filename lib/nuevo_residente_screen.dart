@@ -10,7 +10,7 @@ class NuevoResidenteScreen extends StatefulWidget {
 }
 
 class _NuevoResidenteScreenState extends State<NuevoResidenteScreen> {
-  final Dio dio = Dio(BaseOptions(baseUrl: 'http://127.0.0.1:3002')); 
+  final Dio dio = Dio(BaseOptions(baseUrl: 'http://192.168.100.161:3002'));
   final _formKey = GlobalKey<FormState>();
 
   final TextEditingController nombreCtrl = TextEditingController();
@@ -24,22 +24,23 @@ class _NuevoResidenteScreenState extends State<NuevoResidenteScreen> {
     if (!_formKey.currentState!.validate()) return;
 
     try {
-      await dio.post('/residente', data: {
+      await dio.post('/persona', data: {
         "nombre": nombreCtrl.text,
         "primer_apellido": apellido1Ctrl.text,
-        "segundo_apellido": apellido2Ctrl.text,
-        "correo": correoCtrl.text,
-        "telefono": telefonoCtrl.text,
-        "numero_residencia": int.parse(numeroCasaCtrl.text),
+        "segundo_apellido":
+            apellido2Ctrl.text.isEmpty ? null : apellido2Ctrl.text,
+        "correo": correoCtrl.text.isEmpty ? null : correoCtrl.text,
+        "telefono": telefonoCtrl.text.isEmpty ? null : telefonoCtrl.text,
+        "no_residencia": int.tryParse(numeroCasaCtrl.text),
       });
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Residente agregado correctamente')),
+        const SnackBar(content: Text('Persona agregada correctamente')),
       );
-      Navigator.pop(context, true); // Vuelve a la lista
+      Navigator.pop(context, true);
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error al agregar residente: $e')),
+        SnackBar(content: Text('Error al agregar persona: $e')),
       );
     }
   }
@@ -75,9 +76,7 @@ class _NuevoResidenteScreenState extends State<NuevoResidenteScreen> {
                   backgroundColor: AppColors.celesteVivo,
                   padding: const EdgeInsets.symmetric(vertical: 14),
                 ),
-                onPressed: (){
-                  insertarResidente();
-                },
+                onPressed: insertarResidente,
               ),
             ],
           ),

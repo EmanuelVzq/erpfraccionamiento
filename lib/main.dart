@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:fraccionamiento/colors.dart';
-import 'package:fraccionamiento/inicio_screen.dart';
 import 'package:fraccionamiento/login_screen.dart';
 import 'package:fraccionamiento/pagos_screen.dart';
 import 'package:fraccionamiento/registro_screen.dart';
@@ -33,7 +32,6 @@ class MiApp extends StatelessWidget {
       routes: {
         '/login': (_) => const LoginScreen(),
         '/registro': (_) => const RegistroScreen(),
-        '/inicio': (_) => const InicioScreen(),
         '/pagos': (_) => const PagosScreen(),
       },
     );
