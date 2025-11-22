@@ -1,7 +1,9 @@
+// login_screen.dart
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
 import 'package:fraccionamiento/colors.dart';
 import 'package:fraccionamiento/inicio_screen.dart';
+import 'package:fraccionamiento/services/push_service.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -9,8 +11,11 @@ class LoginScreen extends StatefulWidget {
   @override
   State<LoginScreen> createState() => _LoginScreenState();
 }
-
+//192.168.1.85
+//192.168.100.161
 class _LoginScreenState extends State<LoginScreen> {
+  static const String BASE_URL = "http://192.168.1.85:3002";
+
   final _correoController = TextEditingController();
   final _contrasenaController = TextEditingController();
   bool _cargando = false;
@@ -18,12 +23,10 @@ class _LoginScreenState extends State<LoginScreen> {
 
   final Dio _dio = Dio(
     BaseOptions(
-      baseUrl: 'http://192.168.100.161:3002', // ⚠️ en físico usa la IP de tu PC
+      baseUrl: BASE_URL,
       connectTimeout: const Duration(seconds: 5),
       receiveTimeout: const Duration(seconds: 5),
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: {'Content-Type': 'application/json'},
     ),
   );
 
@@ -39,58 +42,57 @@ class _LoginScreenState extends State<LoginScreen> {
     try {
       final response = await _dio.post(
         '/login',
-        data: {
-          'correo': correo,
-          'contrasena': contrasena,
-        },
+        data: {'correo': correo, 'contrasena': contrasena},
       );
 
       if (response.statusCode == 200) {
         final data = response.data as Map<String, dynamic>;
 
-        // roles viene como List<dynamic>
-        final List<dynamic> rolesDyn = data['roles'] as List<dynamic>;
+        final rolesDyn = data['roles'] as List<dynamic>;
         final roles = rolesDyn.map((e) => e.toString()).toList();
 
-        // Determinar tipoUsuario para la navbar
-        late String tipoUsuario;
-        if (roles.contains('admin')) {
-          tipoUsuario = 'admin';
-        } else if (roles.contains('mesa_directiva')) {
-          tipoUsuario = 'mesa_directiva';
-        } else {
-          // default si solo es residente u otro
-          tipoUsuario = 'residente';
+        final int idPersona = data['id_persona'] as int;
+        final int idUsuario = data['id_usuario'] as int;
+
+        // init push sin romper login
+        try {
+          await PushService.init(
+            idPersona: idPersona,
+            baseUrl: BASE_URL,
+          );
+        } catch (e) {
+          print("⚠️ PushService.init falló pero sigo login: $e");
         }
 
         if (!mounted) return;
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (_) => InicioScreen(roles: roles),
+            builder: (_) => InicioScreen(
+              roles: roles,
+              idPersona: idPersona,
+              idUsuario: idUsuario,
+              tipoUsuario: roles.contains('admin')
+                  ? 'admin'
+                  : (roles.contains('mesa_directiva')
+                      ? 'mesa_directiva'
+                      : 'residente'),
+            ),
           ),
         );
       } else {
-        setState(() {
-          _error = 'Credenciales incorrectas o usuario no encontrado';
-        });
+        setState(() => _error = 'Credenciales incorrectas o usuario no encontrado');
       }
     } on DioException catch (e) {
       setState(() {
-        if (e.response?.statusCode == 401) {
-          _error = 'Credenciales incorrectas o usuario no encontrado';
-        } else {
-          _error = 'Error de conexión con el servidor';
-        }
+        _error = (e.response?.statusCode == 401)
+            ? 'Credenciales incorrectas o usuario no encontrado'
+            : 'Error de conexión con el servidor';
       });
     } catch (_) {
-      setState(() {
-        _error = 'Error inesperado';
-      });
+      setState(() => _error = 'Error inesperado');
     } finally {
-      setState(() {
-        _cargando = false;
-      });
+      setState(() => _cargando = false);
     }
   }
 
@@ -113,14 +115,12 @@ class _LoginScreenState extends State<LoginScreen> {
             children: [
               Icon(Icons.home, color: AppColors.celesteNegro, size: 60),
               const SizedBox(height: 10),
-              Text(
-                'Bienvenido',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.celesteNegro,
-                ),
-              ),
+              Text('Bienvenido',
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.celesteNegro,
+                  )),
               const SizedBox(height: 40),
               TextField(
                 controller: _correoController,
@@ -145,10 +145,7 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               const SizedBox(height: 15),
               if (_error != null)
-                Text(
-                  _error!,
-                  style: const TextStyle(color: Colors.red),
-                ),
+                Text(_error!, style: const TextStyle(color: Colors.red)),
               const SizedBox(height: 25),
               ElevatedButton(
                 onPressed: _cargando ? null : _login,
@@ -160,29 +157,10 @@ class _LoginScreenState extends State<LoginScreen> {
                     ? const SizedBox(
                         height: 22,
                         width: 22,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
-                        ),
+                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                       )
-                    : const Text(
-                        'Iniciar Sesión',
-                        style: TextStyle(color: Colors.white),
-                      ),
-              ),
-              const SizedBox(height: 10),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  TextButton(
-                    onPressed: () => Navigator.pushNamed(context, '/registro'),
-                    child: const Text('Registrarse'),
-                  ),
-                  TextButton(
-                    onPressed: () {},
-                    child: const Text('Recuperar Contraseña'),
-                  ),
-                ],
+                    : const Text('Iniciar Sesión',
+                        style: TextStyle(color: Colors.white)),
               ),
             ],
           ),

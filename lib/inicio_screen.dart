@@ -1,30 +1,70 @@
+// inicio_screen.dart
+import 'dart:async';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:fraccionamiento/avisos_historial_screen.dart';
+import 'package:fraccionamiento/avisos_screen.dart';
 import 'package:fraccionamiento/colors.dart';
 import 'package:fraccionamiento/residentes_screen.dart';
 
 class InicioScreen extends StatefulWidget {
-  final List<String> roles; // ['admin'], ['mesa_directiva'], ['residente'], etc.
+  final List<String> roles;
+  final int idPersona;
+  final int idUsuario;
+  final String tipoUsuario;
 
-  const InicioScreen({super.key, required this.roles});
+  const InicioScreen({
+    super.key,
+    required this.roles,
+    required this.idPersona,
+    required this.idUsuario,
+    required this.tipoUsuario,
+  });
 
   @override
   State<InicioScreen> createState() => _InicioScreenState();
 }
 
 class _InicioScreenState extends State<InicioScreen> {
+  static const String BASE_URL = "http://192.168.1.85:3002";
+
   int _currentIndex = 0;
+  int unread = 0;
+
+  late final Dio dio;
+  Timer? _timer;
 
   bool get isAdmin => widget.roles.contains('admin');
   bool get isMesa => widget.roles.contains('mesa_directiva');
   bool get isResidente => widget.roles.contains('residente');
 
+  @override
+  void initState() {
+    super.initState();
+    dio = Dio(BaseOptions(baseUrl: BASE_URL));
+    cargarUnread();
+    _timer = Timer.periodic(const Duration(seconds: 20), (_) => cargarUnread());
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  Future<void> cargarUnread() async {
+    try {
+      final res = await dio.get("/avisos/unread/${widget.idPersona}");
+      setState(() => unread = res.data["unread"] ?? 0);
+    } catch (e) {
+      print("❌ Error cargando unread: $e");
+    }
+  }
+
   void _onItemTapped(int index) {
-    setState(() {
-      _currentIndex = index;
-    });
+    setState(() => _currentIndex = index);
 
     if (isAdmin) {
-      // admin: Inicio (0), Residentes (1), Mesa Directiva (2), Pagos (3), Avisos (4)
       if (index == 1) {
         Navigator.push(
           context,
@@ -35,47 +75,62 @@ class _InicioScreenState extends State<InicioScreen> {
       } else if (index == 3) {
         Navigator.pushNamed(context, '/pagos');
       } else if (index == 4) {
-        Navigator.pushNamed(context, '/avisos');
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => AvisosScreen(
+              roles: widget.roles,
+              idPersona: widget.idPersona,
+              idUsuario: widget.idUsuario,
+            ),
+          ),
+        ).then((_) => cargarUnread());
       }
     } else if (isMesa) {
-      // mesa_directiva: Inicio (0), Residentes (1), Avisos (2)
       if (index == 1) {
         Navigator.push(
           context,
           MaterialPageRoute(builder: (_) => const ResidentesScreen()),
         );
       } else if (index == 2) {
-        Navigator.pushNamed(context, '/avisos');
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => AvisosScreen(
+              roles: widget.roles,
+              idPersona: widget.idPersona,
+              idUsuario: widget.idUsuario,
+            ),
+          ),
+        ).then((_) => cargarUnread());
       }
     } else if (isResidente) {
-      // residente: Inicio (0), Pagos (1)
-      if (index == 1) {
-        Navigator.pushNamed(context, '/pagos');
-      }
+      if (index == 1) Navigator.pushNamed(context, '/pagos');
     }
   }
 
   List<BottomNavigationBarItem> _buildItems() {
     if (isAdmin) {
-      // 5 pestañas
       return const [
         BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Inicio'),
         BottomNavigationBarItem(icon: Icon(Icons.people), label: 'Residentes'),
         BottomNavigationBarItem(icon: Icon(Icons.group), label: 'Mesa Dir.'),
         BottomNavigationBarItem(icon: Icon(Icons.payments), label: 'Pagos'),
         BottomNavigationBarItem(
-            icon: Icon(Icons.notifications), label: 'Avisos'),
+          icon: Icon(Icons.notifications),
+          label: 'Avisos',
+        ),
       ];
     } else if (isMesa) {
-      // 3 pestañas
       return const [
         BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Inicio'),
         BottomNavigationBarItem(icon: Icon(Icons.people), label: 'Residentes'),
         BottomNavigationBarItem(
-            icon: Icon(Icons.notifications), label: 'Avisos'),
+          icon: Icon(Icons.notifications),
+          label: 'Avisos',
+        ),
       ];
     } else {
-      // residente: 2 pestañas
       return const [
         BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Inicio'),
         BottomNavigationBarItem(icon: Icon(Icons.payments), label: 'Pagos'),
@@ -83,16 +138,62 @@ class _InicioScreenState extends State<InicioScreen> {
     }
   }
 
+  void _cerrarSesion() {
+    // Si luego guardas token en SharedPreferences,
+    // aquí también lo borras.
+    Navigator.pushNamedAndRemoveUntil(
+      context,
+      '/login',
+      (route) => false,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    // Para debug, puedes ver en consola qué roles trae el usuario
-    print('📌 Roles en InicioScreen: ${widget.roles} (admin:$isAdmin mesa:$isMesa res:$isResidente)');
-
     return Scaffold(
       backgroundColor: AppColors.celesteClaro,
       appBar: AppBar(
         backgroundColor: AppColors.celesteVivo,
         title: const Text('Inicio'),
+        actions: [
+          Stack(
+            children: [
+              IconButton(
+                icon: const Icon(Icons.notifications),
+                onPressed: () async {
+                  await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) =>
+                          AvisosHistorialScreen(idPersona: widget.idPersona),
+                    ),
+                  );
+                  cargarUnread();
+                },
+              ),
+              if (unread > 0)
+                Positioned(
+                  right: 8,
+                  top: 8,
+                  child: Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: const BoxDecoration(
+                      color: Colors.red,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Text(
+                      unread.toString(),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(20.0),
@@ -110,6 +211,7 @@ class _InicioScreenState extends State<InicioScreen> {
               ),
             ),
             const SizedBox(height: 20),
+
             Expanded(
               child: GridView.count(
                 crossAxisCount: 2,
@@ -118,7 +220,12 @@ class _InicioScreenState extends State<InicioScreen> {
                 children: [
                   _boton(context, Icons.directions_car, 'Registrar Visitas'),
                   _boton(context, Icons.event, 'Reservar Áreas'),
-                  _boton(context, Icons.campaign, 'Ver Avisos', ruta: '/avisos'),
+                  _boton(
+                    context,
+                    Icons.campaign,
+                    'Ver Avisos',
+                    ruta: '/avisos',
+                  ),
                   _boton(
                     context,
                     Icons.payments,
@@ -128,27 +235,37 @@ class _InicioScreenState extends State<InicioScreen> {
                 ],
               ),
             ),
+
+            const SizedBox(height: 12),
+
+            // ✅ BOTÓN CERRAR SESIÓN
+            ElevatedButton.icon(
+              onPressed: _cerrarSesion,
+              icon: const Icon(Icons.logout, color: Colors.white),
+              label: const Text(
+                "Cerrar sesión",
+                style: TextStyle(color: Colors.white),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.celesteNegro,
+                minimumSize: const Size(double.infinity, 50),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
           ],
         ),
       ),
       bottomNavigationBar: BottomNavigationBar(
-        type: BottomNavigationBarType.fixed, // importante para 5 ítems
+        type: BottomNavigationBarType.fixed,
         backgroundColor: AppColors.celesteNegro,
         selectedItemColor: Colors.white,
         unselectedItemColor: Colors.white70,
-        selectedLabelStyle: const TextStyle(fontSize: 11),
-        unselectedLabelStyle: const TextStyle(fontSize: 10),
-        showUnselectedLabels: true,
         currentIndex: _currentIndex,
         onTap: _onItemTapped,
         items: _buildItems(),
       ),
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: AppColors.amarillo,
-        onPressed: () {},
-        child: const Icon(Icons.add),
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
   }
 
