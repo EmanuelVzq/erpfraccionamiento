@@ -13,7 +13,7 @@ class ResidentesScreen extends StatefulWidget {
 }
 
 class _ResidentesScreenState extends State<ResidentesScreen> {
-  final Dio dio = Dio(BaseOptions(baseUrl: 'http://192.168.100.161:3002'));
+  final Dio dio = Dio(BaseOptions(baseUrl: 'https://apifraccionamiento.onrender.com'));
   List<Residente> residentes = [];
   bool cargando = true;
   String filtro = '';

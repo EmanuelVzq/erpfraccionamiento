@@ -26,7 +26,7 @@ class InicioScreen extends StatefulWidget {
 }
 
 class _InicioScreenState extends State<InicioScreen> {
-  static const String BASE_URL = "http://192.168.1.85:3002";
+  static const String BASE_URL = "https://apifraccionamiento.onrender.com";
 
   int _currentIndex = 0;
   int unread = 0;

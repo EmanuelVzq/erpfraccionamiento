@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:fraccionamiento/colors.dart';
 import 'package:fraccionamiento/login_screen.dart';
 import 'package:fraccionamiento/pagos_screen.dart';
@@ -11,6 +12,9 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
   await PushService.initGlobal();
+
+  Stripe.publishableKey = "pk_test_51SWmkKFFf8vKAWyUeuIU57DSP0L1T57zoMJyEqcYGYIAen012W9p2OmtuxTn6nHMMm7NhBEXb5cesoIEFDbLTrqq00HpqwEdxW"; 
+  await Stripe.instance.applySettings();
 
   runApp(const MiApp());
 }
@@ -39,11 +43,11 @@ class MiApp extends StatelessWidget {
       routes: {
         '/login': (_) => const LoginScreen(),
         '/registro': (_) => const RegistroScreen(),
-        '/pagos': (_) => const PagosScreen(),
       },
       onGenerateRoute: (settings) {
+        final args = (settings.arguments as Map<String, dynamic>?) ?? {};
         if (settings.name == '/avisos') {
-          final args = (settings.arguments as Map<String, dynamic>?) ?? {};
+          
           final roles = (args['roles'] as List<dynamic>? ?? []).cast<String>();
           final idPersona = args['idPersona'] as int? ?? 0;
           final idUsuario = args['idUsuario'] as int? ?? 0;
@@ -56,6 +60,18 @@ class MiApp extends StatelessWidget {
             ),
           );
         }
+        if (settings.name == '/pagos') {
+          final idPersona = args['idPersona'] as int? ?? 0;
+          final idUsuario = args['idUsuario'] as int? ?? 0;
+
+          return MaterialPageRoute(
+            builder: (_) => PagosScreen(
+              idPersona: idPersona,
+              idUsuario: idUsuario,
+            ),
+          );
+        }
+
         return null;
       },
     );

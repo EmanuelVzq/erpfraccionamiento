@@ -1,9 +1,9 @@
-// login_screen.dart
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
 import 'package:fraccionamiento/colors.dart';
 import 'package:fraccionamiento/inicio_screen.dart';
 import 'package:fraccionamiento/services/push_service.dart';
+import 'package:fraccionamiento/session.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -11,88 +11,141 @@ class LoginScreen extends StatefulWidget {
   @override
   State<LoginScreen> createState() => _LoginScreenState();
 }
-//192.168.1.85
-//192.168.100.161
+
 class _LoginScreenState extends State<LoginScreen> {
-  static const String BASE_URL = "http://192.168.1.85:3002";
+  static const String baseUrl = "https://apifraccionamiento.onrender.com";
 
   final _correoController = TextEditingController();
   final _contrasenaController = TextEditingController();
+
   bool _cargando = false;
   String? _error;
 
-  final Dio _dio = Dio(
+  late final Dio _dio = Dio(
     BaseOptions(
-      baseUrl: BASE_URL,
-      connectTimeout: const Duration(seconds: 5),
-      receiveTimeout: const Duration(seconds: 5),
+      baseUrl: baseUrl,
+      connectTimeout: const Duration(seconds: 10),
+      receiveTimeout: const Duration(seconds: 10),
       headers: {'Content-Type': 'application/json'},
+      responseType: ResponseType.json,
+      validateStatus: (s) => s != null && s >= 200 && s < 500,
     ),
   );
 
+  int _asInt(dynamic v, {int fallback = 0}) {
+    if (v == null) return fallback;
+    if (v is int) return v;
+    if (v is num) return v.toInt();
+    if (v is String) return int.tryParse(v.trim()) ?? fallback;
+    return fallback;
+  }
+
+  List<String> _asStringList(dynamic v) {
+    if (v is List) return v.map((e) => e.toString()).toList();
+    return const [];
+  }
+
+  String _serverMsg(Response res) {
+    final d = res.data;
+    if (d == null) return "";
+    if (d is String) return d;
+    if (d is Map && d["error"] != null) return d["error"].toString();
+    return d.toString();
+  }
+
   Future<void> _login() async {
+    final correo = _correoController.text.trim();
+    final contrasena = _contrasenaController.text;
+
+    if (correo.isEmpty || contrasena.isEmpty) {
+      setState(() => _error = "Ingresa correo y contraseña.");
+      return;
+    }
+
     setState(() {
       _cargando = true;
       _error = null;
     });
 
-    final correo = _correoController.text.trim();
-    final contrasena = _contrasenaController.text;
-
     try {
-      final response = await _dio.post(
-        '/login',
-        data: {'correo': correo, 'contrasena': contrasena},
+      final res = await _dio.post(
+        "/login",
+        data: {"correo": correo, "contrasena": contrasena},
       );
 
-      if (response.statusCode == 200) {
-        final data = response.data as Map<String, dynamic>;
-
-        final rolesDyn = data['roles'] as List<dynamic>;
-        final roles = rolesDyn.map((e) => e.toString()).toList();
-
-        final int idPersona = data['id_persona'] as int;
-        final int idUsuario = data['id_usuario'] as int;
-
-        // init push sin romper login
-        try {
-          await PushService.init(
-            idPersona: idPersona,
-            baseUrl: BASE_URL,
-          );
-        } catch (e) {
-          print("⚠️ PushService.init falló pero sigo login: $e");
-        }
-
-        if (!mounted) return;
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (_) => InicioScreen(
-              roles: roles,
-              idPersona: idPersona,
-              idUsuario: idUsuario,
-              tipoUsuario: roles.contains('admin')
-                  ? 'admin'
-                  : (roles.contains('mesa_directiva')
-                      ? 'mesa_directiva'
-                      : 'residente'),
-            ),
-          ),
-        );
-      } else {
-        setState(() => _error = 'Credenciales incorrectas o usuario no encontrado');
+      if (res.statusCode != 200) {
+        final msg = _serverMsg(res);
+        setState(() {
+          _error = (res.statusCode == 401)
+              ? "Credenciales incorrectas o usuario no encontrado."
+              : "Error del servidor (HTTP ${res.statusCode}). ${msg.isNotEmpty ? msg : ""}".trim();
+        });
+        return;
       }
+
+      if (res.data is! Map) {
+        setState(() => _error = "Respuesta inválida del servidor (no es JSON objeto).");
+        return;
+      }
+
+      final data = Map<String, dynamic>.from(res.data as Map);
+
+      final roles = _asStringList(data["roles"]);
+      final idPersona = _asInt(data["id_persona"]);
+      final idUsuario = _asInt(data["id_usuario"]);
+
+      // ✅ CLAVE: no dejes avanzar con 0
+      if (idPersona <= 0 || idUsuario <= 0) {
+        setState(() {
+          _error =
+              "Login OK pero IDs inválidos (id_persona=$idPersona, id_usuario=$idUsuario).\n"
+              "Revisa tu endpoint /login para que regrese enteros correctos.";
+        });
+        return;
+      }
+
+      // ✅ Guardar sesión (para que Pagos/Mantenimiento jamás queden en 0)
+      await Session.save(idPersona: idPersona, idUsuario: idUsuario);
+
+      // init push sin romper login
+      try {
+        await PushService.init(idPersona: idPersona, baseUrl: baseUrl);
+      } catch (e) {
+        debugPrint("⚠️ PushService.init falló pero sigo login: $e");
+      }
+
+      final tipoUsuario = roles.contains("admin")
+          ? "admin"
+          : (roles.contains("mesa_directiva") ? "mesa_directiva" : "residente");
+
+      if (!mounted) return;
+
+      debugPrint("✅ Login OK -> idPersona=$idPersona, idUsuario=$idUsuario, roles=$roles");
+
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (_) => InicioScreen(
+            roles: roles,
+            idPersona: idPersona,
+            idUsuario: idUsuario,
+            tipoUsuario: tipoUsuario,
+          ),
+        ),
+      );
     } on DioException catch (e) {
+      final status = e.response?.statusCode;
+      final body = e.response?.data?.toString();
+
       setState(() {
-        _error = (e.response?.statusCode == 401)
-            ? 'Credenciales incorrectas o usuario no encontrado'
-            : 'Error de conexión con el servidor';
+        _error = status == 401
+            ? "Credenciales incorrectas o usuario no encontrado."
+            : "Error de conexión/servidor. ${status != null ? "HTTP $status" : ""} ${body ?? ""}".trim();
       });
-    } catch (_) {
-      setState(() => _error = 'Error inesperado');
+    } catch (e) {
+      setState(() => _error = "Error inesperado: $e");
     } finally {
-      setState(() => _cargando = false);
+      if (mounted) setState(() => _cargando = false);
     }
   }
 
@@ -115,20 +168,21 @@ class _LoginScreenState extends State<LoginScreen> {
             children: [
               Icon(Icons.home, color: AppColors.celesteNegro, size: 60),
               const SizedBox(height: 10),
-              Text('Bienvenido',
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.celesteNegro,
-                  )),
+              Text(
+                "Bienvenido",
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.celesteNegro,
+                ),
+              ),
               const SizedBox(height: 40),
               TextField(
                 controller: _correoController,
+                keyboardType: TextInputType.emailAddress,
                 decoration: InputDecoration(
-                  labelText: 'Correo',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
+                  labelText: "Correo",
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                 ),
               ),
               const SizedBox(height: 15),
@@ -136,16 +190,18 @@ class _LoginScreenState extends State<LoginScreen> {
                 controller: _contrasenaController,
                 obscureText: true,
                 decoration: InputDecoration(
-                  labelText: 'Contraseña',
+                  labelText: "Contraseña",
                   labelStyle: const TextStyle(color: AppColors.celesteVivo),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                 ),
               ),
               const SizedBox(height: 15),
               if (_error != null)
-                Text(_error!, style: const TextStyle(color: Colors.red)),
+                Text(
+                  _error!,
+                  style: const TextStyle(color: Colors.red),
+                  textAlign: TextAlign.center,
+                ),
               const SizedBox(height: 25),
               ElevatedButton(
                 onPressed: _cargando ? null : _login,
@@ -159,8 +215,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         width: 22,
                         child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                       )
-                    : const Text('Iniciar Sesión',
-                        style: TextStyle(color: Colors.white)),
+                    : const Text("Iniciar Sesión", style: TextStyle(color: Colors.white)),
               ),
             ],
           ),

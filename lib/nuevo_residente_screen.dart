@@ -10,7 +10,7 @@ class NuevoResidenteScreen extends StatefulWidget {
 }
 
 class _NuevoResidenteScreenState extends State<NuevoResidenteScreen> {
-  final Dio dio = Dio(BaseOptions(baseUrl: 'http://192.168.100.161:3002'));
+  final Dio dio = Dio(BaseOptions(baseUrl: 'https://apifraccionamiento.onrender.com'));
   final _formKey = GlobalKey<FormState>();
 
   final TextEditingController nombreCtrl = TextEditingController();
