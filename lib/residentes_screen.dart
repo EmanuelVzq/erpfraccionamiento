@@ -70,14 +70,9 @@ class _ResidentesScreenState extends State<ResidentesScreen> {
     return Scaffold(
       backgroundColor: AppColors.celesteClaro,
       appBar: AppBar(
-        backgroundColor: AppColors.celesteVivo,
-        title: const Text('Residentes'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.notifications_none),
-            onPressed: () {},
-          ),
-        ],
+        backgroundColor: AppColors.celesteNegro,
+        title: const Text('Residentes', style: TextStyle(color: Colors.white),),
+        foregroundColor: Colors.white,
       ),
       body: cargando
           ? const Center(child: CircularProgressIndicator())

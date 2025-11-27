@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
+
 import 'package:fraccionamiento/colors.dart';
 import 'package:fraccionamiento/login_screen.dart';
-import 'package:fraccionamiento/pagos_screen.dart';
 import 'package:fraccionamiento/registro_screen.dart';
 import 'package:fraccionamiento/avisos_screen.dart';
+import 'package:fraccionamiento/pagos_screen.dart';
+import 'package:fraccionamiento/area_comun_screen.dart';
 import 'package:fraccionamiento/services/push_service.dart';
 
 Future<void> main() async {
@@ -13,7 +15,8 @@ Future<void> main() async {
   await Firebase.initializeApp();
   await PushService.initGlobal();
 
-  Stripe.publishableKey = "pk_test_51SWmkKFFf8vKAWyUeuIU57DSP0L1T57zoMJyEqcYGYIAen012W9p2OmtuxTn6nHMMm7NhBEXb5cesoIEFDbLTrqq00HpqwEdxW"; 
+  Stripe.publishableKey =
+      "pk_test_51SWmkKFFf8vKAWyUeuIU57DSP0L1T57zoMJyEqcYGYIAen012W9p2OmtuxTn6nHMMm7NhBEXb5cesoIEFDbLTrqq00HpqwEdxW";
   await Stripe.instance.applySettings();
 
   runApp(const MiApp());
@@ -26,6 +29,7 @@ class MiApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Residentes App',
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
         primaryColor: AppColors.celesteNegro,
         scaffoldBackgroundColor: AppColors.celesteClaro,
@@ -38,7 +42,6 @@ class MiApp extends StatelessWidget {
           ),
         ),
       ),
-      debugShowCheckedModeBanner: false,
       initialRoute: '/login',
       routes: {
         '/login': (_) => const LoginScreen(),
@@ -46,8 +49,8 @@ class MiApp extends StatelessWidget {
       },
       onGenerateRoute: (settings) {
         final args = (settings.arguments as Map<String, dynamic>?) ?? {};
+
         if (settings.name == '/avisos') {
-          
           final roles = (args['roles'] as List<dynamic>? ?? []).cast<String>();
           final idPersona = args['idPersona'] as int? ?? 0;
           final idUsuario = args['idUsuario'] as int? ?? 0;
@@ -60,12 +63,25 @@ class MiApp extends StatelessWidget {
             ),
           );
         }
+
         if (settings.name == '/pagos') {
           final idPersona = args['idPersona'] as int? ?? 0;
           final idUsuario = args['idUsuario'] as int? ?? 0;
 
           return MaterialPageRoute(
             builder: (_) => PagosScreen(
+              idPersona: idPersona,
+              idUsuario: idUsuario,
+            ),
+          );
+        }
+
+        if (settings.name == '/area_comun') {
+          final idPersona = args['idPersona'] as int? ?? 0;
+          final idUsuario = args['idUsuario'] as int? ?? 0;
+
+          return MaterialPageRoute(
+            builder: (_) => AreaComunScreen(
               idPersona: idPersona,
               idUsuario: idUsuario,
             ),

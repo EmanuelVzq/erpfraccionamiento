@@ -28,13 +28,11 @@ class _PagosScreenState extends State<PagosScreen> {
   String? error;
   List<dynamic> pagos = [];
 
-  // IDs reales en uso (nunca deben ser 0)
   int _idPersona = 0;
   int _idUsuario = 0;
 
-  // ✅ Ajusta estos IDs según tu BD
-  static const int _cveTipoPagoStripe = 2; // p.ej. 2 = Stripe
-  static const int _idTipoCuotaDefault = 1; // fallback si tu API no lo manda
+  static const int _cveTipoPagoStripe = 2; 
+  static const int _idTipoCuotaDefault = 1; 
 
   @override
   void initState() {
@@ -56,7 +54,6 @@ class _PagosScreenState extends State<PagosScreen> {
   }
 
   Future<void> _initIdsAndLoad() async {
-    // usa IDs recibidos; si llegan en 0, rescata de Session
     final fromWidgetPersona = widget.idPersona;
     final fromWidgetUsuario = widget.idUsuario;
 
@@ -66,7 +63,7 @@ class _PagosScreenState extends State<PagosScreen> {
     _idPersona = (fromWidgetPersona > 0) ? fromWidgetPersona : spPersona;
     _idUsuario = (fromWidgetUsuario > 0) ? fromWidgetUsuario : spUsuario;
 
-    debugPrint("✅ PagosScreen IDs -> persona=$_idPersona usuario=$_idUsuario");
+    debugPrint("PagosScreen IDs -> persona=$_idPersona usuario=$_idUsuario");
 
     if (_idPersona <= 0 || _idUsuario <= 0) {
       setState(() {
@@ -251,7 +248,8 @@ class _PagosScreenState extends State<PagosScreen> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: AppColors.celesteNegro,
-        title: const Text('Administración de Pagos'),
+        title: const Text('Administración de Pagos', style: TextStyle(color: Colors.white),),
+        foregroundColor: Colors.white,
       ),
       body: Padding(
         padding: const EdgeInsets.all(20.0),

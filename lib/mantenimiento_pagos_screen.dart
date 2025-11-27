@@ -28,9 +28,8 @@ class _MantenimientoPagoScreenState extends State<MantenimientoPagoScreen> {
   String cuentaDestino = "Cuenta mantenimiento";
   bool pagando = false;
 
-  // ✅ Ajusta estos IDs para tu BD
-  static const int _idTipoCuotaMantenimiento = 1; // p.ej. 1 = Mantenimiento
-  static const int _cveTipoPagoStripe = 2; // p.ej. 2 = Stripe/Online
+  static const int _idTipoCuotaMantenimiento = 1; 
+  static const int _cveTipoPagoStripe = 2; 
 
   @override
   void dispose() {
@@ -40,7 +39,6 @@ class _MantenimientoPagoScreenState extends State<MantenimientoPagoScreen> {
   }
 
   int _noTransaccionI32Safe() {
-    // ✅ segundos desde epoch: ~1,7B (sí cabe en i32)
     return DateTime.now().millisecondsSinceEpoch ~/ 1000;
   }
 
@@ -163,7 +161,8 @@ class _MantenimientoPagoScreenState extends State<MantenimientoPagoScreen> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: AppColors.celesteNegro,
-        title: const Text("Mantenimiento"),
+        title: const Text("Mantenimiento", style: TextStyle(color: Colors.white),),
+        foregroundColor: Colors.white,
       ),
       body: Padding(
         padding: const EdgeInsets.all(16),
@@ -238,15 +237,11 @@ class _MantenimientoPagoScreenState extends State<MantenimientoPagoScreen> {
                                 height: 18,
                                 child: CircularProgressIndicator(strokeWidth: 2),
                               )
-                            : const Icon(Icons.credit_card),
-                        label: Text(pagando ? "Procesando..." : "Seleccionar tarjeta y pagar"),
+                            : const Icon(Icons.credit_card, color: Colors.white,),
+                        label: Text(pagando ? "Procesando..." : "Seleccionar tarjeta y pagar", style: TextStyle(color: Colors.white),),
                       ),
                     ),
-                    const SizedBox(height: 10),
-                    const Text(
-                      "La tarjeta se elige dentro del panel de Stripe (PaymentSheet).",
-                      style: TextStyle(color: Colors.black54, fontSize: 12),
-                    ),
+                    
                   ],
                 ),
               ),
