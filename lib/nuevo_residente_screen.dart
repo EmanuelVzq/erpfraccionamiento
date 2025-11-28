@@ -10,7 +10,8 @@ class NuevoResidenteScreen extends StatefulWidget {
 }
 
 class _NuevoResidenteScreenState extends State<NuevoResidenteScreen> {
-  final Dio dio = Dio(BaseOptions(baseUrl: 'https://apifraccionamiento.onrender.com'));
+  final Dio dio =
+      Dio(BaseOptions(baseUrl: 'https://apifraccionamiento.onrender.com'));
   final _formKey = GlobalKey<FormState>();
 
   final TextEditingController nombreCtrl = TextEditingController();
@@ -23,24 +24,53 @@ class _NuevoResidenteScreenState extends State<NuevoResidenteScreen> {
   Future<void> insertarResidente() async {
     if (!_formKey.currentState!.validate()) return;
 
+    final numeroCasa = int.tryParse(numeroCasaCtrl.text.trim());
+    if (numeroCasa == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Número de casa inválido')),
+      );
+      return;
+    }
+
     try {
-      await dio.post('/persona', data: {
-        "nombre": nombreCtrl.text,
-        "primer_apellido": apellido1Ctrl.text,
-        "segundo_apellido":
-            apellido2Ctrl.text.isEmpty ? null : apellido2Ctrl.text,
-        "correo": correoCtrl.text.isEmpty ? null : correoCtrl.text,
-        "telefono": telefonoCtrl.text.isEmpty ? null : telefonoCtrl.text,
-        "no_residencia": int.tryParse(numeroCasaCtrl.text),
+      final res = await dio.post('/persona', data: {
+        "nombre": nombreCtrl.text.trim(),
+        "primer_apellido": apellido1Ctrl.text.trim(),
+        "segundo_apellido": apellido2Ctrl.text.trim().isEmpty
+            ? null
+            : apellido2Ctrl.text.trim(),
+        // correo obligatorio (el backend lo requiere para crear usuario)
+        "correo": correoCtrl.text.trim(),
+        // teléfono opcional
+        "telefono": telefonoCtrl.text.trim().isEmpty
+            ? null
+            : telefonoCtrl.text.trim(),
+        "no_residencia": numeroCasa,
       });
 
+      final data = res.data is Map ? res.data as Map : <String, dynamic>{};
+      final correoLogin =
+          (data['correo_login'] ?? correoCtrl.text.trim()).toString();
+      final passDefault =
+          (data['contrasena_default'] ?? '123456').toString();
+
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Persona agregada correctamente')),
+        SnackBar(
+          content: Text(
+              'Residente creado.\nUsuario: $correoLogin\nContraseña: $passDefault'),
+          duration: const Duration(seconds: 4),
+        ),
       );
+
       Navigator.pop(context, true);
+    } on DioException catch (e) {
+      final msg = e.response?.data?.toString() ?? e.message ?? e.toString();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error al agregar residente: $msg')),
+      );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error al agregar persona: $e')),
+        SnackBar(content: Text('Error inesperado: $e')),
       );
     }
   }
@@ -61,13 +91,23 @@ class _NuevoResidenteScreenState extends State<NuevoResidenteScreen> {
             children: [
               campoTexto('Nombre', nombreCtrl),
               campoTexto('Primer apellido', apellido1Ctrl),
-              campoTexto('Segundo apellido', apellido2Ctrl),
-              campoTexto('Correo electrónico', correoCtrl,
-                  tipo: TextInputType.emailAddress),
-              campoTexto('Teléfono', telefonoCtrl,
-                  tipo: TextInputType.phone),
-              campoTexto('Número de casa', numeroCasaCtrl,
-                  tipo: TextInputType.number),
+              campoTexto('Segundo apellido', apellido2Ctrl, obligatorio: false),
+              campoTexto(
+                'Correo electrónico',
+                correoCtrl,
+                tipo: TextInputType.emailAddress,
+              ),
+              campoTexto(
+                'Teléfono',
+                telefonoCtrl,
+                tipo: TextInputType.phone,
+                obligatorio: false,
+              ),
+              campoTexto(
+                'Número de casa',
+                numeroCasaCtrl,
+                tipo: TextInputType.number,
+              ),
               const SizedBox(height: 20),
               ElevatedButton.icon(
                 icon: const Icon(Icons.save),
@@ -85,8 +125,12 @@ class _NuevoResidenteScreenState extends State<NuevoResidenteScreen> {
     );
   }
 
-  Widget campoTexto(String label, TextEditingController controller,
-      {TextInputType tipo = TextInputType.text}) {
+  Widget campoTexto(
+    String label,
+    TextEditingController controller, {
+    TextInputType tipo = TextInputType.text,
+    bool obligatorio = true,
+  }) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 15),
       child: TextFormField(
@@ -98,8 +142,13 @@ class _NuevoResidenteScreenState extends State<NuevoResidenteScreen> {
           fillColor: Colors.white,
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
         ),
-        validator: (value) =>
-            value == null || value.isEmpty ? 'Campo obligatorio' : null,
+        validator: (value) {
+          if (!obligatorio) return null;
+          if (value == null || value.trim().isEmpty) {
+            return 'Campo obligatorio';
+          }
+          return null;
+        },
       ),
     );
   }

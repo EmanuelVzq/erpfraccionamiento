@@ -94,7 +94,7 @@ class _LoginScreenState extends State<LoginScreen> {
       final idPersona = _asInt(data["id_persona"]);
       final idUsuario = _asInt(data["id_usuario"]);
 
-      // ✅ CLAVE: no dejes avanzar con 0
+      // CLAVE: no deja avanzar con 0
       if (idPersona <= 0 || idUsuario <= 0) {
         setState(() {
           _error =
