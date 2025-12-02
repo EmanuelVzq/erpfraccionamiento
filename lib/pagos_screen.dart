@@ -20,7 +20,10 @@ class PagosScreen extends StatefulWidget {
 }
 
 class _PagosScreenState extends State<PagosScreen> {
-  static const String baseUrl = "https://apifraccionamiento.onrender.com";
+  //static const String baseUrl = "https://apifraccionamiento.onrender.com";
+  //static const String baseUrl = "http://192.168.100.132:3002";
+  static const String baseUrl = "https://apifracc.onrender.com";
+
   late final Dio dio;
 
   bool viendoPendientes = true;
@@ -31,8 +34,8 @@ class _PagosScreenState extends State<PagosScreen> {
   int _idPersona = 0;
   int _idUsuario = 0;
 
-  static const int _cveTipoPagoStripe = 2; 
-  static const int _idTipoCuotaDefault = 1; 
+  static const int _cveTipoPagoStripe = 2;
+  static const int _idTipoCuotaDefault = 1;
 
   @override
   void initState() {
@@ -47,7 +50,12 @@ class _PagosScreenState extends State<PagosScreen> {
     );
 
     dio.interceptors.add(
-      LogInterceptor(request: true, requestBody: true, responseBody: true, error: true),
+      LogInterceptor(
+        request: true,
+        requestBody: true,
+        responseBody: true,
+        error: true,
+      ),
     );
 
     _initIdsAndLoad();
@@ -68,7 +76,8 @@ class _PagosScreenState extends State<PagosScreen> {
     if (_idPersona <= 0 || _idUsuario <= 0) {
       setState(() {
         cargando = false;
-        error = "Sesión inválida. Vuelve a iniciar sesión.\n(idPersona=$_idPersona, idUsuario=$_idUsuario)";
+        error =
+            "Sesión inválida. Vuelve a iniciar sesión.\n(idPersona=$_idPersona, idUsuario=$_idUsuario)";
       });
       return;
     }
@@ -111,7 +120,8 @@ class _PagosScreenState extends State<PagosScreen> {
       if (!mounted) return;
       setState(() {
         cargando = false;
-        error = "Error al cargar pagos:\nHTTP ${e.response?.statusCode}\n${e.response?.data ?? e.message}";
+        error =
+            "Error al cargar pagos:\nHTTP ${e.response?.statusCode}\n${e.response?.data ?? e.message}";
       });
     } catch (e) {
       if (!mounted) return;
@@ -198,7 +208,10 @@ class _PagosScreenState extends State<PagosScreen> {
           title: const Text("Pago registrado"),
           content: const Text("Pago confirmado y guardado en el servidor."),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(context), child: const Text("OK")),
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text("OK"),
+            ),
           ],
         ),
       );
@@ -206,7 +219,9 @@ class _PagosScreenState extends State<PagosScreen> {
       await cargarPagos();
     } on StripeException catch (e) {
       if (!mounted) return;
-      _mostrarError("Pago cancelado o fallido: ${e.error.localizedMessage ?? ""}");
+      _mostrarError(
+        "Pago cancelado o fallido: ${e.error.localizedMessage ?? ""}",
+      );
     } catch (e) {
       if (!mounted) return;
       _mostrarError("No se pudo realizar la transacción.\n$e");
@@ -220,7 +235,10 @@ class _PagosScreenState extends State<PagosScreen> {
         title: const Text("Pago fallido"),
         content: Text(msg),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text("Cerrar")),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Cerrar"),
+          ),
         ],
       ),
     );
@@ -248,7 +266,10 @@ class _PagosScreenState extends State<PagosScreen> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: AppColors.celesteNegro,
-        title: const Text('Administración de Pagos', style: TextStyle(color: Colors.white),),
+        title: const Text(
+          'Administración de Pagos',
+          style: TextStyle(color: Colors.white),
+        ),
         foregroundColor: Colors.white,
       ),
       body: Padding(
@@ -258,24 +279,39 @@ class _PagosScreenState extends State<PagosScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                _filtro('Pendientes', viendoPendientes, onTap: () {
-                  if (!viendoPendientes) {
-                    setState(() => viendoPendientes = true);
-                    cargarPagos();
-                  }
-                }),
-                _filtro('Historial de Pagos', !viendoPendientes, onTap: () {
-                  if (viendoPendientes) {
-                    setState(() => viendoPendientes = false);
-                    cargarPagos();
-                  }
-                }),
+                _filtro(
+                  'Pendientes',
+                  viendoPendientes,
+                  onTap: () {
+                    if (!viendoPendientes) {
+                      setState(() => viendoPendientes = true);
+                      cargarPagos();
+                    }
+                  },
+                ),
+                _filtro(
+                  'Historial de Pagos',
+                  !viendoPendientes,
+                  onTap: () {
+                    if (viendoPendientes) {
+                      setState(() => viendoPendientes = false);
+                      cargarPagos();
+                    }
+                  },
+                ),
               ],
             ),
             const SizedBox(height: 25),
-            const Text('Gráfico de Ingresos Anuales', style: TextStyle(fontWeight: FontWeight.bold)),
+            const Text(
+              'Gráfico de Ingresos Anuales',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 20),
-            const Icon(Icons.pie_chart, color: AppColors.celesteNegro, size: 100),
+            const Icon(
+              Icons.pie_chart,
+              color: AppColors.celesteNegro,
+              size: 100,
+            ),
             const SizedBox(height: 20),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -287,38 +323,47 @@ class _PagosScreenState extends State<PagosScreen> {
             const SizedBox(height: 12),
             SizedBox(
               width: double.infinity,
-              child: _boton('Mantenimiento', AppColors.celesteNegro, _irAMantenimiento),
+              child: _boton(
+                'Mantenimiento',
+                AppColors.celesteNegro,
+                _irAMantenimiento,
+              ),
             ),
             const SizedBox(height: 20),
             Expanded(
               child: cargando
                   ? const Center(child: CircularProgressIndicator())
                   : error != null
-                      ? Center(child: Text(error!, textAlign: TextAlign.center))
-                      : pagos.isEmpty
-                          ? Center(
-                              child: Text(
-                                viendoPendientes ? "No tienes pagos pendientes." : "No hay historial de pagos.",
-                              ),
-                            )
-                          : ListView.builder(
-                              itemCount: pagos.length,
-                              itemBuilder: (_, i) {
-                                final p = pagos[i];
-                                final idRecibo = p["no_transaccion"].toString();
-                                final monto = "\$${double.parse(p["total"].toString()).toStringAsFixed(2)}";
-                                final estado = (p["estado"] ?? "").toString().toUpperCase();
+                  ? Center(child: Text(error!, textAlign: TextAlign.center))
+                  : pagos.isEmpty
+                  ? Center(
+                      child: Text(
+                        viendoPendientes
+                            ? "No tienes pagos pendientes."
+                            : "No hay historial de pagos.",
+                      ),
+                    )
+                  : ListView.builder(
+                      itemCount: pagos.length,
+                      itemBuilder: (_, i) {
+                        final p = pagos[i];
+                        final idRecibo = p["no_transaccion"].toString();
+                        final monto =
+                            "\$${double.parse(p["total"].toString()).toStringAsFixed(2)}";
+                        final estado = (p["estado"] ?? "")
+                            .toString()
+                            .toUpperCase();
 
-                                return _recibo(
-                                  idRecibo,
-                                  monto,
-                                  estado,
-                                  onAction: () {
-                                    if (estado == "PENDIENTE") pagarAhora(p);
-                                  },
-                                );
-                              },
-                            ),
+                        return _recibo(
+                          idRecibo,
+                          monto,
+                          estado,
+                          onAction: () {
+                            if (estado == "PENDIENTE") pagarAhora(p);
+                          },
+                        );
+                      },
+                    ),
             ),
           ],
         ),
@@ -335,7 +380,10 @@ class _PagosScreenState extends State<PagosScreen> {
           color: activo ? AppColors.amarillo : Colors.grey[300],
           borderRadius: BorderRadius.circular(10),
         ),
-        child: Text(texto, style: TextStyle(color: activo ? Colors.black : Colors.grey[700])),
+        child: Text(
+          texto,
+          style: TextStyle(color: activo ? Colors.black : Colors.grey[700]),
+        ),
       ),
     );
   }
@@ -348,7 +396,12 @@ class _PagosScreenState extends State<PagosScreen> {
     );
   }
 
-  Widget _recibo(String id, String monto, String estado, {required VoidCallback onAction}) {
+  Widget _recibo(
+    String id,
+    String monto,
+    String estado, {
+    required VoidCallback onAction,
+  }) {
     final bool pagado = estado == 'PAGADO';
 
     return Container(
@@ -362,19 +415,28 @@ class _PagosScreenState extends State<PagosScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Recibo #$id', style: const TextStyle(fontWeight: FontWeight.bold)),
+          Text(
+            'Recibo #$id',
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          ),
           Text('Monto: $monto'),
           const SizedBox(height: 8),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 5,
+                ),
                 decoration: BoxDecoration(
                   color: pagado ? Colors.green : AppColors.amarillo,
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: Text(estado, style: const TextStyle(color: Colors.white)),
+                child: Text(
+                  estado,
+                  style: const TextStyle(color: Colors.white),
+                ),
               ),
               TextButton(
                 onPressed: onAction,

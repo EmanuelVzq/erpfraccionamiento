@@ -10,8 +10,9 @@ class NuevoResidenteScreen extends StatefulWidget {
 }
 
 class _NuevoResidenteScreenState extends State<NuevoResidenteScreen> {
-  final Dio dio =
-      Dio(BaseOptions(baseUrl: 'https://apifraccionamiento.onrender.com'));
+  //final Dio dio =Dio(BaseOptions(baseUrl: 'https://apifraccionamiento.onrender.com'));
+  final Dio dio = Dio(BaseOptions(baseUrl: 'https://apifracc.onrender.com'));
+
   final _formKey = GlobalKey<FormState>();
 
   final TextEditingController nombreCtrl = TextEditingController();
@@ -26,38 +27,41 @@ class _NuevoResidenteScreenState extends State<NuevoResidenteScreen> {
 
     final numeroCasa = int.tryParse(numeroCasaCtrl.text.trim());
     if (numeroCasa == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Número de casa inválido')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Número de casa inválido')));
       return;
     }
 
     try {
-      final res = await dio.post('/persona', data: {
-        "nombre": nombreCtrl.text.trim(),
-        "primer_apellido": apellido1Ctrl.text.trim(),
-        "segundo_apellido": apellido2Ctrl.text.trim().isEmpty
-            ? null
-            : apellido2Ctrl.text.trim(),
-        // correo obligatorio (el backend lo requiere para crear usuario)
-        "correo": correoCtrl.text.trim(),
-        // teléfono opcional
-        "telefono": telefonoCtrl.text.trim().isEmpty
-            ? null
-            : telefonoCtrl.text.trim(),
-        "no_residencia": numeroCasa,
-      });
+      final res = await dio.post(
+        '/persona',
+        data: {
+          "nombre": nombreCtrl.text.trim(),
+          "primer_apellido": apellido1Ctrl.text.trim(),
+          "segundo_apellido": apellido2Ctrl.text.trim().isEmpty
+              ? null
+              : apellido2Ctrl.text.trim(),
+          // correo obligatorio (el backend lo requiere para crear usuario)
+          "correo": correoCtrl.text.trim(),
+          // teléfono opcional
+          "telefono": telefonoCtrl.text.trim().isEmpty
+              ? null
+              : telefonoCtrl.text.trim(),
+          "no_residencia": numeroCasa,
+        },
+      );
 
       final data = res.data is Map ? res.data as Map : <String, dynamic>{};
-      final correoLogin =
-          (data['correo_login'] ?? correoCtrl.text.trim()).toString();
-      final passDefault =
-          (data['contrasena_default'] ?? '123456').toString();
+      final correoLogin = (data['correo_login'] ?? correoCtrl.text.trim())
+          .toString();
+      final passDefault = (data['contrasena_default'] ?? '123456').toString();
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-              'Residente creado.\nUsuario: $correoLogin\nContraseña: $passDefault'),
+            'Residente creado.\nUsuario: $correoLogin\nContraseña: $passDefault',
+          ),
           duration: const Duration(seconds: 4),
         ),
       );
@@ -69,9 +73,9 @@ class _NuevoResidenteScreenState extends State<NuevoResidenteScreen> {
         SnackBar(content: Text('Error al agregar residente: $msg')),
       );
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error inesperado: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error inesperado: $e')));
     }
   }
 

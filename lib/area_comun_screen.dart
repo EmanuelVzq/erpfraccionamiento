@@ -20,7 +20,9 @@ class AreaComunScreen extends StatefulWidget {
 
 class _AreaComunScreenState extends State<AreaComunScreen>
     with SingleTickerProviderStateMixin {
-  static const String baseUrl = "https://apifraccionamiento.onrender.com";
+  //static const String baseUrl = "https://apifraccionamiento.onrender.com";
+  //static const String baseUrl = "http://192.168.100.132:3002";
+  static const String baseUrl = "https://apifracc.onrender.com";
 
   late final Dio dio;
   late final TabController _tab;
@@ -55,7 +57,10 @@ class _AreaComunScreenState extends State<AreaComunScreen>
       return Scaffold(
         appBar: AppBar(
           backgroundColor: AppColors.celesteNegro,
-          title: const Text("Área Común", style: TextStyle(color: Colors.white),),
+          title: const Text(
+            "Área Común",
+            style: TextStyle(color: Colors.white),
+          ),
         ),
         body: const Center(
           child: Padding(
@@ -72,13 +77,13 @@ class _AreaComunScreenState extends State<AreaComunScreen>
     return Scaffold(
       appBar: AppBar(
         backgroundColor: AppColors.celesteNegro,
-        title: const Text("Área Común", style: TextStyle(color: Colors.white,),),
+        title: const Text("Área Común", style: TextStyle(color: Colors.white)),
         foregroundColor: Colors.white,
         bottom: TabBar(
           controller: _tab,
           tabs: const [
-            Tab(icon: Icon(Icons.add_box_outlined, color: Colors.white,)),
-            Tab(icon: Icon(Icons.history, color: Colors.white,)),
+            Tab(icon: Icon(Icons.add_box_outlined, color: Colors.white)),
+            Tab(icon: Icon(Icons.history, color: Colors.white)),
           ],
         ),
       ),
@@ -91,10 +96,7 @@ class _AreaComunScreenState extends State<AreaComunScreen>
             idUsuario: widget.idUsuario,
             onReservaCreada: () => _tab.animateTo(1),
           ),
-          _MisReservasTab(
-            dio: dio,
-            idPersona: widget.idPersona,
-          ),
+          _MisReservasTab(dio: dio, idPersona: widget.idPersona),
         ],
       ),
     );
@@ -217,7 +219,9 @@ class _NuevaReservaTabState extends State<_NuevaReservaTab> {
           ? Map<String, dynamic>.from(res.data as Map)
           : <String, dynamic>{};
 
-      final list = (data["fechas"] is List) ? (data["fechas"] as List) : <dynamic>[];
+      final list = (data["fechas"] is List)
+          ? (data["fechas"] as List)
+          : <dynamic>[];
 
       _ocupadas.clear();
       for (final f in list) {
@@ -286,12 +290,18 @@ class _NuevaReservaTabState extends State<_NuevaReservaTab> {
   }
 
   Future<void> _consultarDisponibilidad() async {
-    if (areaSel == null || fechaSel == null || horaIni == null || horaFin == null) {
+    if (areaSel == null ||
+        fechaSel == null ||
+        horaIni == null ||
+        horaFin == null) {
       _alert("Faltan datos", "Selecciona área, fecha, hora inicio y hora fin.");
       return;
     }
     if (!_horarioValido()) {
-      _alert("Horario inválido", "La hora fin debe ser mayor que la hora inicio.");
+      _alert(
+        "Horario inválido",
+        "La hora fin debe ser mayor que la hora inicio.",
+      );
       return;
     }
 
@@ -343,7 +353,10 @@ class _NuevaReservaTabState extends State<_NuevaReservaTab> {
 
   Future<void> _crearReserva() async {
     if (disponible != true) {
-      _alert("No disponible", "Primero consulta disponibilidad y asegúrate que esté disponible.");
+      _alert(
+        "No disponible",
+        "Primero consulta disponibilidad y asegúrate que esté disponible.",
+      );
       return;
     }
 
@@ -362,13 +375,19 @@ class _NuevaReservaTabState extends State<_NuevaReservaTab> {
       final res = await widget.dio.post("/reservas", data: payload);
 
       if (res.statusCode == 409) {
-        _alert("No disponible", "Alguien reservó antes ese horario. Elige otro.");
+        _alert(
+          "No disponible",
+          "Alguien reservó antes ese horario. Elige otro.",
+        );
         setState(() => disponible = false);
         return;
       }
 
       if (res.statusCode != 200) {
-        _alert("Error", "No se pudo crear la reserva.\nHTTP ${res.statusCode}\n${res.data}");
+        _alert(
+          "Error",
+          "No se pudo crear la reserva.\nHTTP ${res.statusCode}\n${res.data}",
+        );
         return;
       }
 
@@ -407,7 +426,9 @@ class _NuevaReservaTabState extends State<_NuevaReservaTab> {
     final isOcc = _ocupadas.contains(d);
 
     final Color bg = isOcc ? AppColors.amarillo : AppColors.celesteClaro;
-    final Color border = isSelected ? AppColors.celesteNegro : Colors.transparent;
+    final Color border = isSelected
+        ? AppColors.celesteNegro
+        : Colors.transparent;
 
     return AnimatedContainer(
       duration: const Duration(milliseconds: 120),
@@ -435,7 +456,10 @@ class _NuevaReservaTabState extends State<_NuevaReservaTab> {
         Container(
           width: 12,
           height: 12,
-          decoration: BoxDecoration(color: c, borderRadius: BorderRadius.circular(4)),
+          decoration: BoxDecoration(
+            color: c,
+            borderRadius: BorderRadius.circular(4),
+          ),
         ),
         const SizedBox(width: 6),
         Text(txt, style: const TextStyle(fontSize: 12)),
@@ -456,7 +480,10 @@ class _NuevaReservaTabState extends State<_NuevaReservaTab> {
             children: [
               Text(errorAreas!, textAlign: TextAlign.center),
               const SizedBox(height: 12),
-              ElevatedButton(onPressed: _cargarAreas, child: const Text("Reintentar")),
+              ElevatedButton(
+                onPressed: _cargarAreas,
+                child: const Text("Reintentar"),
+              ),
             ],
           ),
         ),
@@ -481,10 +508,12 @@ class _NuevaReservaTabState extends State<_NuevaReservaTab> {
                   DropdownButtonFormField<dynamic>(
                     value: areaSel,
                     items: areas
-                        .map((a) => DropdownMenuItem(
-                              value: a,
-                              child: Text(a["nombre"].toString()),
-                            ))
+                        .map(
+                          (a) => DropdownMenuItem(
+                            value: a,
+                            child: Text(a["nombre"].toString()),
+                          ),
+                        )
                         .toList(),
                     onChanged: (v) async {
                       setState(() {
@@ -498,7 +527,10 @@ class _NuevaReservaTabState extends State<_NuevaReservaTab> {
 
                       if (v != null) {
                         final cveArea = (v["cve_area"] as num).toInt();
-                        await _cargarFechasOcupadas(cveArea: cveArea, month: _focusedDay);
+                        await _cargarFechasOcupadas(
+                          cveArea: cveArea,
+                          month: _focusedDay,
+                        );
                       }
                     },
                     decoration: const InputDecoration(
@@ -525,9 +557,15 @@ class _NuevaReservaTabState extends State<_NuevaReservaTab> {
                       children: [
                         Row(
                           children: [
-                            const Icon(Icons.calendar_month, color: AppColors.celesteNegro),
+                            const Icon(
+                              Icons.calendar_month,
+                              color: AppColors.celesteNegro,
+                            ),
                             const SizedBox(width: 8),
-                            const Text("Calendario", style: TextStyle(fontWeight: FontWeight.bold)),
+                            const Text(
+                              "Calendario",
+                              style: TextStyle(fontWeight: FontWeight.bold),
+                            ),
                             const Spacer(),
                             _legendDot(AppColors.amarillo, "Ocupada"),
                             const SizedBox(width: 10),
@@ -558,8 +596,12 @@ class _NuevaReservaTabState extends State<_NuevaReservaTab> {
                                 const SizedBox(height: 10),
                                 ElevatedButton(
                                   onPressed: () async {
-                                    final cveArea = (areaSel["cve_area"] as num).toInt();
-                                    await _cargarFechasOcupadas(cveArea: cveArea, month: _focusedDay);
+                                    final cveArea = (areaSel["cve_area"] as num)
+                                        .toInt();
+                                    await _cargarFechasOcupadas(
+                                      cveArea: cveArea,
+                                      month: _focusedDay,
+                                    );
                                   },
                                   child: const Text("Reintentar"),
                                 ),
@@ -572,11 +614,16 @@ class _NuevaReservaTabState extends State<_NuevaReservaTab> {
                             height: 360,
                             child: TableCalendar(
                               firstDay: DateTime.now(),
-                              lastDay: DateTime(DateTime.now().year + 2, 12, 31),
+                              lastDay: DateTime(
+                                DateTime.now().year + 2,
+                                12,
+                                31,
+                              ),
                               focusedDay: _focusedDay,
                               calendarFormat: CalendarFormat.month,
                               startingDayOfWeek: StartingDayOfWeek.monday,
-                              availableGestures: AvailableGestures.horizontalSwipe,
+                              availableGestures:
+                                  AvailableGestures.horizontalSwipe,
                               selectedDayPredicate: (day) =>
                                   fechaSel != null && isSameDay(fechaSel!, day),
                               onDaySelected: (selectedDay, focusedDay) {
@@ -590,8 +637,12 @@ class _NuevaReservaTabState extends State<_NuevaReservaTab> {
                               onPageChanged: (focusedDay) async {
                                 _focusedDay = focusedDay;
                                 if (areaSel != null) {
-                                  final cveArea = (areaSel["cve_area"] as num).toInt();
-                                  await _cargarFechasOcupadas(cveArea: cveArea, month: focusedDay);
+                                  final cveArea = (areaSel["cve_area"] as num)
+                                      .toInt();
+                                  await _cargarFechasOcupadas(
+                                    cveArea: cveArea,
+                                    month: focusedDay,
+                                  );
                                 }
                                 if (mounted) setState(() {});
                               },
@@ -604,9 +655,12 @@ class _NuevaReservaTabState extends State<_NuevaReservaTab> {
                                 isTodayHighlighted: true,
                               ),
                               calendarBuilders: CalendarBuilders(
-                                defaultBuilder: (context, day, _) => _dayMarker(day),
-                                todayBuilder: (context, day, _) => _dayMarker(day),
-                                selectedBuilder: (context, day, _) => _dayMarker(day),
+                                defaultBuilder: (context, day, _) =>
+                                    _dayMarker(day),
+                                todayBuilder: (context, day, _) =>
+                                    _dayMarker(day),
+                                selectedBuilder: (context, day, _) =>
+                                    _dayMarker(day),
                               ),
                             ),
                           ),
@@ -641,7 +695,11 @@ class _NuevaReservaTabState extends State<_NuevaReservaTab> {
                         child: OutlinedButton.icon(
                           onPressed: _pickHoraInicio,
                           icon: const Icon(Icons.schedule),
-                          label: Text(horaIni == null ? "Hora inicio" : _fmtTime(horaIni!)),
+                          label: Text(
+                            horaIni == null
+                                ? "Hora inicio"
+                                : _fmtTime(horaIni!),
+                          ),
                         ),
                       ),
                       const SizedBox(width: 12),
@@ -649,7 +707,9 @@ class _NuevaReservaTabState extends State<_NuevaReservaTab> {
                         child: OutlinedButton.icon(
                           onPressed: _pickHoraFin,
                           icon: const Icon(Icons.schedule),
-                          label: Text(horaFin == null ? "Hora fin" : _fmtTime(horaFin!)),
+                          label: Text(
+                            horaFin == null ? "Hora fin" : _fmtTime(horaFin!),
+                          ),
                         ),
                       ),
                     ],
@@ -660,14 +720,22 @@ class _NuevaReservaTabState extends State<_NuevaReservaTab> {
                   // CONSULTAR
                   ElevatedButton(
                     onPressed: consultando ? null : _consultarDisponibilidad,
-                    style: ElevatedButton.styleFrom(backgroundColor: AppColors.celesteNegro),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.celesteNegro,
+                    ),
                     child: consultando
                         ? const SizedBox(
                             height: 18,
                             width: 18,
-                            child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
                           )
-                        : const Text("Consultar disponibilidad", style: TextStyle(color: Colors.white)),
+                        : const Text(
+                            "Consultar disponibilidad",
+                            style: TextStyle(color: Colors.white),
+                          ),
                   ),
 
                   const SizedBox(height: 10),
@@ -676,10 +744,14 @@ class _NuevaReservaTabState extends State<_NuevaReservaTab> {
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: (disponible == true) ? Colors.green[50] : Colors.red[50],
+                        color: (disponible == true)
+                            ? Colors.green[50]
+                            : Colors.red[50],
                         borderRadius: BorderRadius.circular(10),
                         border: Border.all(
-                          color: (disponible == true) ? Colors.green : Colors.red,
+                          color: (disponible == true)
+                              ? Colors.green
+                              : Colors.red,
                         ),
                       ),
                       child: Text(
@@ -687,7 +759,9 @@ class _NuevaReservaTabState extends State<_NuevaReservaTab> {
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontWeight: FontWeight.w600,
-                          color: (disponible == true) ? Colors.green[800] : Colors.red[800],
+                          color: (disponible == true)
+                              ? Colors.green[800]
+                              : Colors.red[800],
                         ),
                       ),
                     ),
@@ -697,8 +771,13 @@ class _NuevaReservaTabState extends State<_NuevaReservaTab> {
                   // CONFIRMAR
                   ElevatedButton(
                     onPressed: (disponible == true) ? _crearReserva : null,
-                    style: ElevatedButton.styleFrom(backgroundColor: AppColors.amarillo),
-                    child: const Text("Confirmar reserva", style: TextStyle(color: Colors.black)),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.amarillo,
+                    ),
+                    child: const Text(
+                      "Confirmar reserva",
+                      style: TextStyle(color: Colors.black),
+                    ),
                   ),
                   const SizedBox(height: 6),
                   const Text(
@@ -723,10 +802,7 @@ class _MisReservasTab extends StatefulWidget {
   final Dio dio;
   final int idPersona;
 
-  const _MisReservasTab({
-    required this.dio,
-    required this.idPersona,
-  });
+  const _MisReservasTab({required this.dio, required this.idPersona});
 
   @override
   State<_MisReservasTab> createState() => _MisReservasTabState();
@@ -754,7 +830,8 @@ class _MisReservasTabState extends State<_MisReservasTab> {
 
       if (res.statusCode != 200) {
         setState(() {
-          error = "Error al cargar reservas. HTTP ${res.statusCode}\n${res.data}";
+          error =
+              "Error al cargar reservas. HTTP ${res.statusCode}\n${res.data}";
           cargando = false;
         });
         return;
@@ -793,7 +870,10 @@ class _MisReservasTabState extends State<_MisReservasTab> {
             children: [
               Text(error!, textAlign: TextAlign.center),
               const SizedBox(height: 12),
-              ElevatedButton(onPressed: _cargar, child: const Text("Reintentar")),
+              ElevatedButton(
+                onPressed: _cargar,
+                child: const Text("Reintentar"),
+              ),
             ],
           ),
         ),
@@ -825,18 +905,29 @@ class _MisReservasTabState extends State<_MisReservasTab> {
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(14),
-              boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 4)],
+              boxShadow: const [
+                BoxShadow(color: Colors.black12, blurRadius: 4),
+              ],
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(area, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                Text(
+                  area,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
                 const SizedBox(height: 4),
                 Text("Fecha: $fecha"),
                 Text("Horario: $ini - $fin"),
                 const SizedBox(height: 10),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 6,
+                  ),
                   decoration: BoxDecoration(
                     color: c.withOpacity(0.15),
                     borderRadius: BorderRadius.circular(10),

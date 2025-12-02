@@ -13,7 +13,8 @@ class ResidentesScreen extends StatefulWidget {
 }
 
 class _ResidentesScreenState extends State<ResidentesScreen> {
-  final Dio dio = Dio(BaseOptions(baseUrl: 'https://apifraccionamiento.onrender.com'));
+  //final Dio dio = Dio(BaseOptions(baseUrl: 'https://apifraccionamiento.onrender.com'));
+  final Dio dio = Dio(BaseOptions(baseUrl: 'https://apifracc.onrender.com'));
   List<Residente> residentes = [];
   bool cargando = true;
   String filtro = '';
@@ -35,9 +36,9 @@ class _ResidentesScreenState extends State<ResidentesScreen> {
       });
     } catch (e) {
       setState(() => cargando = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error al obtener personas: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error al obtener personas: $e')));
     }
   }
 
@@ -49,9 +50,9 @@ class _ResidentesScreenState extends State<ResidentesScreen> {
         const SnackBar(content: Text('Persona eliminada correctamente')),
       );
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error al eliminar persona: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error al eliminar persona: $e')));
     }
   }
 
@@ -71,7 +72,7 @@ class _ResidentesScreenState extends State<ResidentesScreen> {
       backgroundColor: AppColors.celesteClaro,
       appBar: AppBar(
         backgroundColor: AppColors.celesteNegro,
-        title: const Text('Residentes', style: TextStyle(color: Colors.white),),
+        title: const Text('Residentes', style: TextStyle(color: Colors.white)),
         foregroundColor: Colors.white,
       ),
       body: cargando
@@ -121,9 +122,7 @@ class _ResidentesScreenState extends State<ResidentesScreen> {
                                 color: Colors.black87,
                               ),
                             ),
-                            subtitle: Text(
-                              'Casa ${r.numeroResidencia ?? '-'}',
-                            ),
+                            subtitle: Text('Casa ${r.numeroResidencia ?? '-'}'),
                             trailing: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [

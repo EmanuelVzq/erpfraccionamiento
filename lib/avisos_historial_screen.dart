@@ -11,7 +11,9 @@ class AvisosHistorialScreen extends StatefulWidget {
 }
 
 class _AvisosHistorialScreenState extends State<AvisosHistorialScreen> {
-  static const String BASE_URL = "https://apifraccionamiento.onrender.com";
+  // static const String BASE_URL = "https://apifraccionamiento.onrender.com";
+  //https://apifracc.onrender.com
+  static const String BASE_URL = "https://apifracc.onrender.com";
   final Dio dio = Dio(BaseOptions(baseUrl: BASE_URL));
 
   bool cargando = true;
@@ -44,10 +46,13 @@ class _AvisosHistorialScreenState extends State<AvisosHistorialScreen> {
 
   Future<void> _marcarAvisoLeido(int idAviso) async {
     try {
-      await dio.post('/avisos/leer', data: {
-        "id_persona": widget.idPersona,
-        "ids_avisos": [idAviso],
-      });
+      await dio.post(
+        '/avisos/leer',
+        data: {
+          "id_persona": widget.idPersona,
+          "ids_avisos": [idAviso],
+        },
+      );
     } catch (e) {
       print("❌ Error marcando leído: $e");
     }
@@ -104,39 +109,40 @@ class _AvisosHistorialScreenState extends State<AvisosHistorialScreen> {
       body: cargando
           ? const Center(child: CircularProgressIndicator())
           : error != null
-              ? Center(child: Text(error!))
-              : avisos.isEmpty
-                  ? const Center(child: Text("No hay avisos aún."))
-                  : ListView.builder(
-                      padding: const EdgeInsets.all(16),
-                      itemCount: avisos.length,
-                      itemBuilder: (_, i) {
-                        final a = avisos[i] as Map<String, dynamic>;
-                        final bool leido = a["leido"] == true;
+          ? Center(child: Text(error!))
+          : avisos.isEmpty
+          ? const Center(child: Text("No hay avisos aún."))
+          : ListView.builder(
+              padding: const EdgeInsets.all(16),
+              itemCount: avisos.length,
+              itemBuilder: (_, i) {
+                final a = avisos[i] as Map<String, dynamic>;
+                final bool leido = a["leido"] == true;
 
-                        return Card(
-                          child: ListTile(
-                            onTap: () => _mostrarDetalleAviso(a),
-                            leading: leido
-                                ? const Icon(Icons.mark_email_read)
-                                : const Icon(Icons.mark_email_unread,
-                                    color: Colors.blue),
-                            title: Text(
-                              a["titulo"] ?? "",
-                              style: TextStyle(
-                                fontWeight:
-                                    leido ? FontWeight.normal : FontWeight.bold,
-                              ),
-                            ),
-                            subtitle: Text(a["mensaje"] ?? ""),
-                            trailing: Text(
-                              a["nombre_emisor"] ?? "",
-                              style: const TextStyle(fontSize: 11),
-                            ),
+                return Card(
+                  child: ListTile(
+                    onTap: () => _mostrarDetalleAviso(a),
+                    leading: leido
+                        ? const Icon(Icons.mark_email_read)
+                        : const Icon(
+                            Icons.mark_email_unread,
+                            color: Colors.blue,
                           ),
-                        );
-                      },
+                    title: Text(
+                      a["titulo"] ?? "",
+                      style: TextStyle(
+                        fontWeight: leido ? FontWeight.normal : FontWeight.bold,
+                      ),
                     ),
+                    subtitle: Text(a["mensaje"] ?? ""),
+                    trailing: Text(
+                      a["nombre_emisor"] ?? "",
+                      style: const TextStyle(fontSize: 11),
+                    ),
+                  ),
+                );
+              },
+            ),
     );
   }
 }

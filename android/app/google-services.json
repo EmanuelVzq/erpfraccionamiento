@@ -1,13 +1,13 @@
 {
   "project_info": {
-    "project_number": "777812318154",
-    "project_id": "erpfraccionamiento",
-    "storage_bucket": "erpfraccionamiento.firebasestorage.app"
+    "project_number": "287210665652",
+    "project_id": "fraccionamiento-app",
+    "storage_bucket": "fraccionamiento-app.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:777812318154:android:03ee72e21aaad062e0a133",
+        "mobilesdk_app_id": "1:287210665652:android:5a09e91a48754b96aec9e1",
         "android_client_info": {
           "package_name": "com.example.fraccionamiento"
         }
@@ -15,7 +15,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyBw9xpQ6lPE-NaZFN7-7vxBvQ2_9WXrbpQ"
+          "current_key": "AIzaSyBULU_12NnLFwrhhvxPUMwCdiUFvhepfK0"
         }
       ],
       "services": {

@@ -19,11 +19,12 @@ class AvisosScreen extends StatefulWidget {
 }
 
 class _AvisosScreenState extends State<AvisosScreen> {
-  final Dio dio = Dio(BaseOptions(baseUrl: 'https://apifraccionamiento.onrender.com'));
+  //final Dio dio = Dio(BaseOptions(baseUrl: 'https://apifraccionamiento.onrender.com'));
+  final Dio dio = Dio(BaseOptions(baseUrl: 'https://apifracc.onrender.com'));
+  //static const String baseUrl = "https://apifracc.onrender.com";
 
   bool get puedeEnviar =>
-      widget.roles.contains('admin') ||
-      widget.roles.contains('mesa_directiva');
+      widget.roles.contains('admin') || widget.roles.contains('mesa_directiva');
 
   List avisos = [];
   List<Map<String, dynamic>> personas = [];
@@ -74,10 +75,13 @@ class _AvisosScreenState extends State<AvisosScreen> {
 
   Future<void> _marcarAvisoLeido(int idAviso) async {
     try {
-      await dio.post('/avisos/leer', data: {
-        "id_persona": widget.idPersona,
-        "ids_avisos": [idAviso],
-      });
+      await dio.post(
+        '/avisos/leer',
+        data: {
+          "id_persona": widget.idPersona,
+          "ids_avisos": [idAviso],
+        },
+      );
     } catch (e) {
       print("❌ Error marcando leído: $e");
     }
@@ -127,13 +131,16 @@ class _AvisosScreenState extends State<AvisosScreen> {
   Future<void> enviarAviso() async {
     if (tituloCtrl.text.isEmpty || mensajeCtrl.text.isEmpty) return;
 
-    await dio.post('/avisos', data: {
-      "id_usuario_emisor": widget.idUsuario,
-      "titulo": tituloCtrl.text,
-      "mensaje": mensajeCtrl.text,
-      "a_todos": aTodos,
-      "destinatarios": aTodos ? null : seleccionados,
-    });
+    await dio.post(
+      '/avisos',
+      data: {
+        "id_usuario_emisor": widget.idUsuario,
+        "titulo": tituloCtrl.text,
+        "mensaje": mensajeCtrl.text,
+        "a_todos": aTodos,
+        "destinatarios": aTodos ? null : seleccionados,
+      },
+    );
 
     tituloCtrl.clear();
     mensajeCtrl.clear();
@@ -144,9 +151,9 @@ class _AvisosScreenState extends State<AvisosScreen> {
 
     if (!mounted) return;
     Navigator.pop(context); // cerrar modal
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Aviso enviado')),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Aviso enviado')));
   }
 
   void abrirNuevoAviso() {
@@ -161,8 +168,8 @@ class _AvisosScreenState extends State<AvisosScreen> {
         return StatefulBuilder(
           builder: (context, setModalState) {
             final listaFiltrada = personas.where((p) {
-              final nombre =
-                  '${p["nombre"]} ${p["primer_apellido"]}'.toLowerCase();
+              final nombre = '${p["nombre"]} ${p["primer_apellido"]}'
+                  .toLowerCase();
               return nombre.contains(filtro.toLowerCase());
             }).toList();
 
@@ -177,10 +184,13 @@ class _AvisosScreenState extends State<AvisosScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text("Nuevo aviso",
-                        style: TextStyle(
-                            
-                            fontWeight: FontWeight.bold, fontSize: 18)),
+                    const Text(
+                      "Nuevo aviso",
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18,
+                      ),
+                    ),
                     const SizedBox(height: 10),
 
                     TextField(
@@ -190,7 +200,8 @@ class _AvisosScreenState extends State<AvisosScreen> {
                         filled: true,
                         fillColor: Colors.white,
                         border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12)),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
                     ),
                     const SizedBox(height: 10),
@@ -204,7 +215,8 @@ class _AvisosScreenState extends State<AvisosScreen> {
                         filled: true,
                         fillColor: Colors.white,
                         border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12)),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
                     ),
                     const SizedBox(height: 10),
@@ -226,7 +238,8 @@ class _AvisosScreenState extends State<AvisosScreen> {
                           filled: true,
                           fillColor: Colors.white,
                           border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12)),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
                         ),
                         onChanged: (v) => setModalState(() => filtro = v),
                       ),
@@ -234,8 +247,7 @@ class _AvisosScreenState extends State<AvisosScreen> {
 
                       ...listaFiltrada.map((p) {
                         final id = p["id_persona"] as int;
-                        final nombre =
-                            '${p["nombre"]} ${p["primer_apellido"]}';
+                        final nombre = '${p["nombre"]} ${p["primer_apellido"]}';
                         final seleccionado = seleccionados.contains(id);
 
                         return CheckboxListTile(
@@ -249,10 +261,13 @@ class _AvisosScreenState extends State<AvisosScreen> {
                           activeColor: AppColors.celesteNegro,
                           checkColor: Colors.white,
                           side: const BorderSide(
-                              color: AppColors.celesteNegro, width: 1.5),
+                            color: AppColors.celesteNegro,
+                            width: 1.5,
+                          ),
                           selected: seleccionado,
-                          selectedTileColor:
-                              AppColors.celesteClaro.withOpacity(0.3),
+                          selectedTileColor: AppColors.celesteClaro.withOpacity(
+                            0.3,
+                          ),
                           onChanged: (v) {
                             setModalState(() {
                               if (v == true) {
@@ -272,8 +287,11 @@ class _AvisosScreenState extends State<AvisosScreen> {
                         await enviarAviso();
                         if (mounted) Navigator.pop(context);
                       },
-                      icon: const Icon(Icons.send, color: Colors.white,),
-                      label: const Text("Enviar aviso", style: TextStyle(color: Colors.white),),
+                      icon: const Icon(Icons.send, color: Colors.white),
+                      label: const Text(
+                        "Enviar aviso",
+                        style: TextStyle(color: Colors.white),
+                      ),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.celesteNegro,
                         minimumSize: const Size(double.infinity, 50),
@@ -295,57 +313,56 @@ class _AvisosScreenState extends State<AvisosScreen> {
       backgroundColor: AppColors.celesteClaro,
       appBar: AppBar(
         backgroundColor: AppColors.celesteNegro,
-        title: const Text("Avisos", style: TextStyle(color: Colors.white),),
+        title: const Text("Avisos", style: TextStyle(color: Colors.white)),
         foregroundColor: Colors.white,
       ),
       body: cargando
           ? const Center(child: CircularProgressIndicator())
           : error != null
-              ? Center(child: Text(error!))
-              : avisos.isEmpty
-                  ? const Center(child: Text("No hay avisos aún."))
-                  : ListView.builder(
-                      padding: const EdgeInsets.all(16),
-                      itemCount: avisos.length,
-                      itemBuilder: (_, i) {
-                        final a = avisos[i] as Map<String, dynamic>;
-                        final bool leido = a["leido"] == true;
+          ? Center(child: Text(error!))
+          : avisos.isEmpty
+          ? const Center(child: Text("No hay avisos aún."))
+          : ListView.builder(
+              padding: const EdgeInsets.all(16),
+              itemCount: avisos.length,
+              itemBuilder: (_, i) {
+                final a = avisos[i] as Map<String, dynamic>;
+                final bool leido = a["leido"] == true;
 
-                        return Card(
-                          child: ListTile(
-                            onTap: () => _mostrarDetalleAviso(a),
-                            leading: Icon(
-                              leido
-                                  ? Icons.notifications_none
-                                  : Icons.notifications_active,
-                              color: leido
-                                  ? Colors.grey
-                                  : AppColors.celesteNegro,
-                            ),
-                            title: Text(
-                              a["titulo"] ?? "",
-                              style: TextStyle(
-                                fontWeight: leido
-                                    ? FontWeight.normal
-                                    : FontWeight.bold,
-                              ),
-                            ),
-                            subtitle: Text(a["mensaje"] ?? ""),
-                            trailing: Text(
-                              a["nombre_emisor"] ?? "",
-                              style: const TextStyle(fontSize: 11),
-                            ),
-                          ),
-                        );
-                      },
+                return Card(
+                  child: ListTile(
+                    onTap: () => _mostrarDetalleAviso(a),
+                    leading: Icon(
+                      leido
+                          ? Icons.notifications_none
+                          : Icons.notifications_active,
+                      color: leido ? Colors.grey : AppColors.celesteNegro,
                     ),
+                    title: Text(
+                      a["titulo"] ?? "",
+                      style: TextStyle(
+                        fontWeight: leido ? FontWeight.normal : FontWeight.bold,
+                      ),
+                    ),
+                    subtitle: Text(a["mensaje"] ?? ""),
+                    trailing: Text(
+                      a["nombre_emisor"] ?? "",
+                      style: const TextStyle(fontSize: 11),
+                    ),
+                  ),
+                );
+              },
+            ),
 
       floatingActionButton: puedeEnviar
           ? FloatingActionButton.extended(
               onPressed: abrirNuevoAviso,
               backgroundColor: AppColors.celesteNegro,
-              icon: const Icon(Icons.add, color: Colors.white,),
-              label: const Text("Nuevo aviso", style: TextStyle(color: Colors.white),),
+              icon: const Icon(Icons.add, color: Colors.white),
+              label: const Text(
+                "Nuevo aviso",
+                style: TextStyle(color: Colors.white),
+              ),
             )
           : null,
     );
