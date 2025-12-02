@@ -1,5 +1,6 @@
 // inicio_screen.dart
 import 'dart:async';
+
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 
@@ -8,6 +9,11 @@ import 'package:fraccionamiento/avisos_screen.dart';
 import 'package:fraccionamiento/colors.dart';
 import 'package:fraccionamiento/residentes_screen.dart';
 import 'package:fraccionamiento/area_comun_screen.dart';
+import 'package:fraccionamiento/session.dart';
+
+import 'package:get/get.dart';
+import 'package:fraccionamiento/controllers/auth_controller.dart';
+import 'package:fraccionamiento/ui/profile_screen.dart';
 
 class InicioScreen extends StatefulWidget {
   final List<String> roles;
@@ -73,12 +79,21 @@ class _InicioScreenState extends State<InicioScreen> {
     }
   }
 
-  void _cerrarSesion() {
+  /// 🔴 Cerrar sesión real: Google + sesión local
+  Future<void> _cerrarSesion() async {
+    // Cerrar sesión de Google/Firebase
+    await AuthController.to.logout();
+
+    // Borrar IDs guardados en SharedPreferences
+    await Session.clear();
+
+    if (!mounted) return;
+
+    // Volver a la pantalla de login y limpiar el stack
     Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
   }
 
   Future<void> _irAAreasComunes() async {
-    // ✅ AreaComunScreen SOLO recibe idPersona e idUsuario (NO dio, NO roles)
     await Navigator.push(
       context,
       MaterialPageRoute(
@@ -108,10 +123,7 @@ class _InicioScreenState extends State<InicioScreen> {
     Navigator.pushNamed(
       context,
       '/pagos',
-      arguments: {
-        "idPersona": widget.idPersona,
-        "idUsuario": widget.idUsuario,
-      },
+      arguments: {"idPersona": widget.idPersona, "idUsuario": widget.idUsuario},
     );
   }
 
@@ -185,27 +197,42 @@ class _InicioScreenState extends State<InicioScreen> {
         BottomNavigationBarItem(icon: Icon(Icons.people), label: 'Residentes'),
         BottomNavigationBarItem(icon: Icon(Icons.group), label: 'Mesa Dir.'),
         BottomNavigationBarItem(icon: Icon(Icons.payments), label: 'Pagos'),
-        BottomNavigationBarItem(icon: Icon(Icons.event_available), label: 'Áreas'),
-        BottomNavigationBarItem(icon: Icon(Icons.notifications), label: 'Avisos'),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.event_available),
+          label: 'Áreas',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.notifications),
+          label: 'Avisos',
+        ),
       ];
     } else if (isMesa) {
       return const [
         BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Inicio'),
         BottomNavigationBarItem(icon: Icon(Icons.people), label: 'Residentes'),
-        BottomNavigationBarItem(icon: Icon(Icons.event_available), label: 'Áreas'),
-        BottomNavigationBarItem(icon: Icon(Icons.notifications), label: 'Avisos'),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.event_available),
+          label: 'Áreas',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.notifications),
+          label: 'Avisos',
+        ),
       ];
     } else {
       return const [
         BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Inicio'),
         BottomNavigationBarItem(icon: Icon(Icons.payments), label: 'Pagos'),
-        BottomNavigationBarItem(icon: Icon(Icons.event_available), label: 'Áreas'),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.event_available),
+          label: 'Áreas',
+        ),
       ];
     }
   }
 
   Drawer? _buildDrawer() {
-    // ✅ Drawer solo para Residente y Mesa
+    // Drawer solo para Residente y Mesa
     if (isAdmin) return null;
 
     return Drawer(
@@ -263,20 +290,21 @@ class _InicioScreenState extends State<InicioScreen> {
     return Scaffold(
       backgroundColor: AppColors.celesteClaro,
       drawer: _buildDrawer(),
-
       appBar: AppBar(
         backgroundColor: AppColors.celesteNegro,
-        title: const Text('Inicio', style: TextStyle(color: Colors.white),),
+        title: const Text('Inicio', style: TextStyle(color: Colors.white)),
         actions: [
+          // 🔔 Notificaciones con badge
           Stack(
             children: [
               IconButton(
-                icon: const Icon(Icons.notifications, color: Colors.white,),
+                icon: const Icon(Icons.notifications, color: Colors.white),
                 onPressed: () async {
                   await Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (_) => AvisosHistorialScreen(idPersona: widget.idPersona),
+                      builder: (_) =>
+                          AvisosHistorialScreen(idPersona: widget.idPersona),
                     ),
                   );
                   cargarUnread();
@@ -288,7 +316,10 @@ class _InicioScreenState extends State<InicioScreen> {
                   top: 8,
                   child: Container(
                     padding: const EdgeInsets.all(4),
-                    decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
+                    decoration: const BoxDecoration(
+                      color: Colors.red,
+                      shape: BoxShape.circle,
+                    ),
                     child: Text(
                       unread.toString(),
                       style: const TextStyle(
@@ -301,9 +332,32 @@ class _InicioScreenState extends State<InicioScreen> {
                 ),
             ],
           ),
+
+          // 🧑 Avatar del usuario (GetX + Google)
+          Padding(
+            padding: const EdgeInsets.only(right: 12),
+            child: Obx(() {
+              final photo = AuthController.to.user.value.photoUrl;
+
+              return GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const ProfileScreen()),
+                  );
+                },
+                child: CircleAvatar(
+                  radius: 18,
+                  backgroundImage: photo.isNotEmpty
+                      ? NetworkImage(photo)
+                      : const AssetImage("assets/avatar_default.png")
+                            as ImageProvider,
+                ),
+              );
+            }),
+          ),
         ],
       ),
-
       body: Padding(
         padding: const EdgeInsets.all(20.0),
         child: Column(
@@ -314,41 +368,66 @@ class _InicioScreenState extends State<InicioScreen> {
                 prefixIcon: const Icon(Icons.search),
                 filled: true,
                 fillColor: Colors.white,
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
             ),
             const SizedBox(height: 20),
-
             Expanded(
               child: GridView.count(
                 crossAxisCount: 2,
                 mainAxisSpacing: 15,
                 crossAxisSpacing: 15,
                 children: [
-                  _boton(context, Icons.directions_car, 'Registrar Visitas', onTap: () {}),
-                  _boton(context, Icons.event_available, 'Reservar Áreas', onTap: _irAAreasComunes),
-                  _boton(context, Icons.campaign, 'Ver Avisos', onTap: _irAAvisos),
-                  _boton(context, Icons.payments, 'Consultar Pagos', onTap: _goPagos),
+                  _boton(
+                    context,
+                    Icons.directions_car,
+                    'Registrar Visitas',
+                    onTap: () {
+                      // TODO: Navegar a pantalla de visitas
+                    },
+                  ),
+                  _boton(
+                    context,
+                    Icons.event_available,
+                    'Reservar Áreas',
+                    onTap: _irAAreasComunes,
+                  ),
+                  _boton(
+                    context,
+                    Icons.campaign,
+                    'Ver Avisos',
+                    onTap: _irAAvisos,
+                  ),
+                  _boton(
+                    context,
+                    Icons.payments,
+                    'Consultar Pagos',
+                    onTap: _goPagos,
+                  ),
                 ],
               ),
             ),
-
             const SizedBox(height: 12),
-
             ElevatedButton.icon(
               onPressed: _cerrarSesion,
               icon: const Icon(Icons.logout, color: Colors.white),
-              label: const Text("Cerrar sesión", style: TextStyle(color: Colors.white)),
+              label: const Text(
+                "Cerrar sesión",
+                style: TextStyle(color: Colors.white),
+              ),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.celesteNegro,
                 minimumSize: const Size(double.infinity, 50),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
             ),
           ],
         ),
       ),
-
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
         backgroundColor: AppColors.celesteNegro,

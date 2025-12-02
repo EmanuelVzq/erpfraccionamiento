@@ -15,7 +15,8 @@ class PushService {
   // ---------- HANDLER BACKGROUND ----------
   @pragma('vm:entry-point')
   static Future<void> firebaseMessagingBackgroundHandler(
-      RemoteMessage message) async {
+    RemoteMessage message,
+  ) async {
     await Firebase.initializeApp();
     // Si llega data-only y quieres mostrar también:
     if (message.notification != null) {
@@ -28,8 +29,10 @@ class PushService {
     // 1) Inicializa local notifications
     const androidInit = AndroidInitializationSettings('@mipmap/ic_launcher');
     const iosInit = DarwinInitializationSettings();
-    const initSettings =
-        InitializationSettings(android: androidInit, iOS: iosInit);
+    const initSettings = InitializationSettings(
+      android: androidInit,
+      iOS: iosInit,
+    );
 
     await _fln.initialize(initSettings);
 
@@ -45,7 +48,8 @@ class PushService {
 
     await _fln
         .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>()
+          AndroidFlutterLocalNotificationsPlugin
+        >()
         ?.createNotificationChannel(channel);
 
     // 3) Permiso runtime Android 13+ + iOS
@@ -54,7 +58,8 @@ class PushService {
     if (Platform.isAndroid) {
       await _fln
           .resolvePlatformSpecificImplementation<
-              AndroidFlutterLocalNotificationsPlugin>()
+            AndroidFlutterLocalNotificationsPlugin
+          >()
           ?.requestNotificationsPermission();
     }
 
@@ -89,11 +94,14 @@ class PushService {
 
   static Future<void> _registrarToken(String token) async {
     final dio = Dio(BaseOptions(baseUrl: _baseUrl));
-    await dio.post("/dispositivo", data: {
-      "id_persona": _idPersona,
-      "plataforma": "android",
-      "push_token": token,
-    });
+    await dio.post(
+      "/dispositivo",
+      data: {
+        "id_persona": _idPersona,
+        "plataforma": "android",
+        "push_token": token,
+      },
+    );
   }
 
   static Future<void> _showLocal(RemoteMessage message) async {
