@@ -1,11 +1,11 @@
 class Residente {
-  final int idResidente;           // mapea a id_persona
+  final int idResidente;           
   final String nombre;
   final String primerApellido;
   final String? segundoApellido;
-  final String? correo;            // ahora pueden venir null en la BD
+  final String? correo;            
   final String? telefono;
-  final int? numeroResidencia;     // mapea a no_residencia
+  final int? numeroResidencia;     
 
   Residente({
     required this.idResidente,

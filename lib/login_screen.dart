@@ -16,8 +16,8 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  //static const String baseUrl = "https://apifraccionamiento.onrender.com";
-  static const String baseUrl = "https://apifracc-1.onrender.com";
+  static const String baseUrl = "https://apifraccionamiento.onrender.com";
+  //static const String baseUrl = "https://apifracc-1.onrender.com";
   //static const String baseUrl = "http://192.168.100.132:3002";
   final _correoController = TextEditingController();
   final _contrasenaController = TextEditingController();
@@ -99,7 +99,7 @@ class _LoginScreenState extends State<LoginScreen> {
     try {
       await PushService.init(idPersona: idPersona, baseUrl: baseUrl);
     } catch (e) {
-      debugPrint("⚠️ PushService.init falló pero sigo login: $e");
+      debugPrint("PushService.init falló pero sigo login: $e");
     }
 
     final tipoUsuario = roles.contains("admin")
@@ -109,7 +109,7 @@ class _LoginScreenState extends State<LoginScreen> {
     if (!mounted) return;
 
     debugPrint(
-      "✅ Login OK -> idPersona=$idPersona, idUsuario=$idUsuario, roles=$roles",
+      "Login OK -> idPersona=$idPersona, idUsuario=$idUsuario, roles=$roles",
     );
 
     Navigator.pushReplacement(
@@ -149,7 +149,7 @@ class _LoginScreenState extends State<LoginScreen> {
       await _procesarLoginResponse(res);
     } on dio.DioException catch (e) {
       debugPrint(
-        "❌ DioException: type=${e.type}, message=${e.message}, error=${e.error}",
+        "DioException: type=${e.type}, message=${e.message}, error=${e.error}",
       );
       final status = e.response?.statusCode;
       final body = e.response?.data?.toString();

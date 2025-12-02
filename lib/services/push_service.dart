@@ -83,8 +83,10 @@ class PushService {
     _baseUrl = baseUrl;
 
     final token = await _fcm.getToken();
+    print('🔥 TOKEN FCM: $token');
     if (token != null) {
       await _registrarToken(token);
+      print('🔥 TOKEN FCM registrado: $token');
     }
 
     _fcm.onTokenRefresh.listen((newToken) async {
