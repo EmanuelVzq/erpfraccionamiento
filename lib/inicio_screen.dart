@@ -9,6 +9,7 @@ import 'package:fraccionamiento/avisos_screen.dart';
 import 'package:fraccionamiento/colors.dart';
 import 'package:fraccionamiento/residentes_screen.dart';
 import 'package:fraccionamiento/area_comun_screen.dart';
+import 'package:fraccionamiento/services/tutorial_service.dart';
 import 'package:fraccionamiento/session.dart';
 
 import 'package:get/get.dart';
@@ -35,6 +36,10 @@ class InicioScreen extends StatefulWidget {
 
 class _InicioScreenState extends State<InicioScreen> {
   static const String baseUrl = "https://apifraccionamiento.onrender.com";
+  final GlobalKey keyReservas = GlobalKey();
+  final GlobalKey keyAvisos = GlobalKey();
+  final GlobalKey keyPagos = GlobalKey();
+  final GlobalKey keyPerfil = GlobalKey();
 
   int _currentIndex = 0;
   int unread = 0;
@@ -49,6 +54,8 @@ class _InicioScreenState extends State<InicioScreen> {
   @override
   void initState() {
     super.initState();
+    // Al cargar la pantalla, lanzar el tutorial una sola vez
+
     dio = Dio(
       BaseOptions(
         baseUrl: baseUrl,
@@ -58,6 +65,18 @@ class _InicioScreenState extends State<InicioScreen> {
     );
     cargarUnread();
     _timer = Timer.periodic(const Duration(seconds: 20), (_) => cargarUnread());
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final tutorial = TutorialService();
+
+      final targets = tutorial.createTargets(
+        botonReservas: keyReservas,
+        botonAvisos: keyAvisos,
+        botonPagos: keyPagos,
+        botonPerfil: keyPerfil,
+      );
+
+      await tutorial.start(context: context, targets: targets);
+    });
   }
 
   @override
@@ -347,6 +366,7 @@ class _InicioScreenState extends State<InicioScreen> {
                   );
                 },
                 child: CircleAvatar(
+                  key: keyPerfil,
                   radius: 18,
                   backgroundImage: photo.isNotEmpty
                       ? NetworkImage(photo)
@@ -393,18 +413,21 @@ class _InicioScreenState extends State<InicioScreen> {
                     Icons.event_available,
                     'Reservar Áreas',
                     onTap: _irAAreasComunes,
+                    key: keyReservas,
                   ),
                   _boton(
                     context,
                     Icons.campaign,
                     'Ver Avisos',
                     onTap: _irAAvisos,
+                    key: keyAvisos,
                   ),
                   _boton(
                     context,
                     Icons.payments,
                     'Consultar Pagos',
                     onTap: _goPagos,
+                    key: keyPagos,
                   ),
                 ],
               ),
@@ -445,8 +468,10 @@ class _InicioScreenState extends State<InicioScreen> {
     IconData icono,
     String texto, {
     VoidCallback? onTap,
+    Key? key,
   }) {
     return GestureDetector(
+      key: key,
       onTap: onTap,
       child: Container(
         decoration: BoxDecoration(
