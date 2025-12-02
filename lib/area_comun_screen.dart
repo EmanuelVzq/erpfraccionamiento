@@ -22,7 +22,7 @@ class _AreaComunScreenState extends State<AreaComunScreen>
     with SingleTickerProviderStateMixin {
   //static const String baseUrl = "https://apifraccionamiento.onrender.com";
   //static const String baseUrl = "http://192.168.100.132:3002";
-  static const String baseUrl = "https://apifracc.onrender.com";
+  static const String baseUrl = "https://apifracc-1.onrender.com";
 
   late final Dio dio;
   late final TabController _tab;

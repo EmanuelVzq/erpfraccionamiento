@@ -16,7 +16,7 @@ class _EditarResidenteScreenState extends State<EditarResidenteScreen> {
   //  final Dio dio = Dio(BaseOptions(baseUrl: 'https://apifraccionamiento.onrender.com'),
   //);
 
-  final Dio dio = Dio(BaseOptions(baseUrl: 'https://apifracc.onrender.com'));
+  final Dio dio = Dio(BaseOptions(baseUrl: 'https://apifracc-1.onrender.com'));
   final _formKey = GlobalKey<FormState>();
 
   late TextEditingController nombreCtrl;

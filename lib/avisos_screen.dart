@@ -20,8 +20,7 @@ class AvisosScreen extends StatefulWidget {
 
 class _AvisosScreenState extends State<AvisosScreen> {
   //final Dio dio = Dio(BaseOptions(baseUrl: 'https://apifraccionamiento.onrender.com'));
-  final Dio dio = Dio(BaseOptions(baseUrl: 'https://apifracc.onrender.com'));
-  //static const String baseUrl = "https://apifracc.onrender.com";
+  final Dio dio = Dio(BaseOptions(baseUrl: 'https://apifracc-1.onrender.com'));
 
   bool get puedeEnviar =>
       widget.roles.contains('admin') || widget.roles.contains('mesa_directiva');

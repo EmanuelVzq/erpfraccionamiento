@@ -14,7 +14,7 @@ class ResidentesScreen extends StatefulWidget {
 
 class _ResidentesScreenState extends State<ResidentesScreen> {
   //final Dio dio = Dio(BaseOptions(baseUrl: 'https://apifraccionamiento.onrender.com'));
-  final Dio dio = Dio(BaseOptions(baseUrl: 'https://apifracc.onrender.com'));
+  final Dio dio = Dio(BaseOptions(baseUrl: 'https://apifracc-1.onrender.com'));
   List<Residente> residentes = [];
   bool cargando = true;
   String filtro = '';

@@ -12,8 +12,7 @@ class AvisosHistorialScreen extends StatefulWidget {
 
 class _AvisosHistorialScreenState extends State<AvisosHistorialScreen> {
   // static const String BASE_URL = "https://apifraccionamiento.onrender.com";
-  //https://apifracc.onrender.com
-  static const String BASE_URL = "https://apifracc.onrender.com";
+  static const String BASE_URL = "https://apifracc-1.onrender.com";
   final Dio dio = Dio(BaseOptions(baseUrl: BASE_URL));
 
   bool cargando = true;
