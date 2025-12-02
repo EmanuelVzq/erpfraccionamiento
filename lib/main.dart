@@ -5,6 +5,7 @@ import 'package:flutter_stripe/flutter_stripe.dart';
 
 import 'package:fraccionamiento/colors.dart';
 import 'package:fraccionamiento/login_screen.dart';
+import 'package:fraccionamiento/onboarding_screen.dart';
 import 'package:fraccionamiento/registro_screen.dart';
 import 'package:fraccionamiento/avisos_screen.dart';
 import 'package:fraccionamiento/pagos_screen.dart';
@@ -14,6 +15,7 @@ import 'package:fraccionamiento/session.dart';
 import 'package:fraccionamiento/inicio_screen.dart';
 import 'package:fraccionamiento/controllers/auth_controller.dart';
 import 'package:get/get.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -122,13 +124,27 @@ class AuthWrapper extends StatelessWidget {
   const AuthWrapper({super.key});
 
   Future<_StartInfo> _load() async {
-    // 1) Revisar si hay sesión de tu backend (SharedPreferences)
+    final sp = await SharedPreferences.getInstance();
+
+    // 🔹 0) Revisar si el onboarding ya se completó
+    final onboardingDone = sp.getBool("onboarding_done") ?? false;
+
+    if (!onboardingDone) {
+      // Mostrar onboarding
+      return const _StartInfo(
+        loggedIn: false,
+        idPersona: 0,
+        idUsuario: 0,
+        roles: [],
+        tipoUsuario: "onboarding",
+      );
+    }
+
+    // 🔹 1) Revisar si hay sesión local del backend (SharedPreferences)
     final savedIdPersona = await Session.idPersona();
     final savedIdUsuario = await Session.idUsuario();
 
     if (savedIdPersona > 0 && savedIdUsuario > 0) {
-      // aquí podrías guardar también roles en SharedPreferences,
-      // por ahora asumimos 'residente'
       return _StartInfo(
         loggedIn: true,
         idPersona: savedIdPersona,
@@ -138,10 +154,9 @@ class AuthWrapper extends StatelessWidget {
       );
     }
 
-    // 2) Revisar si Firebase tiene un usuario (Google)
+    // 🔹 2) Revisar si Firebase tiene un usuario (Google)
     final fbUser = FirebaseAuth.instance.currentUser;
     if (fbUser != null) {
-      // sincroniza con tu AuthController para que tenga la foto / nombre
       AuthController.to.setFromFirebase(fbUser);
 
       return const _StartInfo(
@@ -153,13 +168,13 @@ class AuthWrapper extends StatelessWidget {
       );
     }
 
-    // 3) Nadie logueado → ir al login
+    // 🔹 3) Nadie logueado → ir al login
     return const _StartInfo(
       loggedIn: false,
       idPersona: 0,
       idUsuario: 0,
       roles: [],
-      tipoUsuario: '',
+      tipoUsuario: "",
     );
   }
 
@@ -176,10 +191,17 @@ class AuthWrapper extends StatelessWidget {
 
         final info = snapshot.data!;
 
+        // 🔹 Mostrar onboarding
+        if (info.tipoUsuario == "onboarding") {
+          return const OnboardingScreen();
+        }
+
+        // 🔹 No está logueado
         if (!info.loggedIn) {
           return const LoginScreen();
         }
 
+        // 🔹 Está logueado (backend o google)
         return InicioScreen(
           roles: info.roles,
           idPersona: info.idPersona,

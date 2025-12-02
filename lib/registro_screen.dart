@@ -14,8 +14,14 @@ class RegistroScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(height: 60),
-            const Text('Registro de Residente',
-                style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold)),
+            const Text(
+              'Registro de Residente',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
             const SizedBox(height: 20),
             _campo('Nombre(s)'),
             _campo('Apellidos'),
@@ -25,9 +31,14 @@ class RegistroScreen extends StatelessWidget {
             const SizedBox(height: 10),
             ElevatedButton.icon(
               onPressed: () {},
-              icon: const Icon(Icons.attach_file, color: AppColors.celesteNegro),
-              label: const Text('Adjuntar Comprobante de Identidad',
-                  style: TextStyle(color: AppColors.celesteNegro)),
+              icon: const Icon(
+                Icons.attach_file,
+                color: AppColors.celesteNegro,
+              ),
+              label: const Text(
+                'Adjuntar Comprobante de Identidad',
+                style: TextStyle(color: AppColors.celesteNegro),
+              ),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.white,
                 minimumSize: const Size(double.infinity, 50),
@@ -35,16 +46,25 @@ class RegistroScreen extends StatelessWidget {
             ),
             const SizedBox(height: 20),
             ElevatedButton(
-              onPressed: () => Navigator.pushReplacementNamed(context, '/inicio'),
+              onPressed: () =>
+                  Navigator.pushReplacementNamed(context, '/inicio'),
               style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.amarillo,
-                  minimumSize: const Size(double.infinity, 50)),
-              child: const Text('Enviar Solicitud',
-                  style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+                backgroundColor: AppColors.amarillo,
+                minimumSize: const Size(double.infinity, 50),
+              ),
+              child: const Text(
+                'Enviar Solicitud',
+                style: TextStyle(
+                  color: Colors.black,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ),
             const SizedBox(height: 10),
-            const Text('Su cuenta se activará tras la validación de la Mesa Directiva.',
-                style: TextStyle(color: Colors.white, fontSize: 12)),
+            const Text(
+              'Su cuenta se activará tras la validación de la Mesa Directiva.',
+              style: TextStyle(color: Colors.white, fontSize: 12),
+            ),
           ],
         ),
       ),

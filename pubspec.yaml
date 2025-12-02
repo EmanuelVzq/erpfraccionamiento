@@ -48,6 +48,8 @@ dependencies:
   get: ^4.6.5
   google_sign_in: ^6.2.1
   firebase_auth: ^6.1.2
+  tutorial_coach_mark: ^1.2.0
+
 
 
 dev_dependencies:
